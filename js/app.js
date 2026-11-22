@@ -109,8 +109,10 @@ const LumiApp = {
       if (msgEl) msgEl.innerText = `النجوم طلعت والقمر بيقول تصبحي على خير يا ${prof.name}.. نكمل مغامراتنا بكرة الساعة ${cfg.bedtimeEnd || '07:00'} بنشاط! 💤`;
       if (badgeEl) badgeEl.innerText = `⏰ فترة النوم المحددة: من ${cfg.bedtimeStart || '21:00'} إلى ${cfg.bedtimeEnd || '07:00'}`;
       overlay.style.display = 'flex';
+      this.refreshBedtimeParentVoiceBtn();
     } else {
       this.stopBedtimeLullaby();
+    this.stopParentBedtimeVoice();
       overlay.style.display = 'none';
     }
   },
@@ -121,9 +123,64 @@ const LumiApp = {
   _lullabyCtx: null,
   _lullabyPlaying: false,
 
+
+  _parentBedAudio: null,
+  _parentBedPlaying: false,
+
+  async refreshBedtimeParentVoiceBtn() {
+    const btn = document.getElementById('bedtime-parent-voice-btn');
+    if (!btn || !LumiStorage.getRecording) return;
+    try {
+      const rec = await LumiStorage.getRecording('bedtime_lullaby');
+      btn.style.display = rec ? 'inline-block' : 'none';
+    } catch (e) {
+      btn.style.display = 'none';
+    }
+  },
+
+  async toggleParentBedtimeVoice() {
+    if (this._parentBedPlaying) {
+      this.stopParentBedtimeVoice();
+      return;
+    }
+    this.stopBedtimeLullaby();
+    this.stopParentBedtimeVoice();
+    try {
+      const rec = await LumiStorage.getRecording('bedtime_lullaby');
+      if (!rec) return alert('لم يتم تسجيل دعاء أو تهويدة بعد من استوديو الصوت في لوحة الأهل.');
+      const src = typeof rec === 'string' ? rec : (rec.data || URL.createObjectURL(rec));
+      this._parentBedAudio = new Audio(src);
+      this._parentBedAudio.loop = true;
+      this._parentBedPlaying = true;
+      const btn = document.getElementById('bedtime-parent-voice-btn');
+      if (btn) {
+        btn.innerText = '⏹️ إيقاف صوت بابا وماما';
+        btn.style.background = 'linear-gradient(135deg,#EC4899,#F43F5E)';
+      }
+      await this._parentBedAudio.play();
+      setTimeout(() => this.stopParentBedtimeVoice(), 10 * 60 * 1000);
+    } catch (e) {
+      this.stopParentBedtimeVoice();
+    }
+  },
+
+  stopParentBedtimeVoice() {
+    this._parentBedPlaying = false;
+    if (this._parentBedAudio) {
+      try { this._parentBedAudio.pause(); this._parentBedAudio.currentTime = 0; } catch (e) {}
+      this._parentBedAudio = null;
+    }
+    const btn = document.getElementById('bedtime-parent-voice-btn');
+    if (btn) {
+      btn.innerText = '🎙️ تشغيل دعاء / تهويدة بابا وماما';
+      btn.style.background = 'linear-gradient(135deg,#F59E0B,#EA580C)';
+    }
+  },
+
   toggleBedtimeLullaby() {
     if (this._lullabyPlaying) {
       this.stopBedtimeLullaby();
+    this.stopParentBedtimeVoice();
     } else {
       this.startBedtimeLullaby();
     }
@@ -131,6 +188,7 @@ const LumiApp = {
 
   startBedtimeLullaby() {
     this.stopBedtimeLullaby();
+    this.stopParentBedtimeVoice();
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
 
@@ -204,6 +262,7 @@ const LumiApp = {
     if (pin === savedPin) {
       this._bedtimeBypassUntil = Date.now() + 30 * 60 * 1000;
       this.stopBedtimeLullaby();
+    this.stopParentBedtimeVoice();
       document.getElementById('bedtime-overlay').style.display = 'none';
       LumiAudio.sfxClick();
     } else {
