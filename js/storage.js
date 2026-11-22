@@ -55,7 +55,31 @@ const LumiStorage = {
     return profs.find(p => p.id === id) || profs[0];
   },
 
-  getDefaultState() {
+  getWelcomeMessagesFor(profileId) {
+    const today = new Date().toLocaleDateString('ar-EG');
+    if (profileId === 'heaven') {
+      return [
+        {
+          id: 'baba_mina_heaven_v25',
+          from: 'بابا مينا ❤️',
+          text: 'إلى أميرتي الكبيرة وبطلتي الذكية هيفن (10 سنوات) 👸✨.. فخور بيكِ وبشطارتك! جربي تحديات الأبطال +10، ولا تنسي تسجلي الكلمات بصوتك الحلو في وضع المعلمة الصغيرة لأختك هيلن عشان تكسبي نجوم مضاعفة! بحبك قد الدنيا ❤️',
+          date: today,
+          read: false
+        }
+      ];
+    }
+    return [
+      {
+        id: 'baba_mina_helen_v25',
+        from: 'بابا مينا ❤️',
+        text: 'إلى بنوتي الجميلة وسكرة البيت هيلن (3 سنوات) 🦄🎈.. أهلاً بيكِ في عالم LumiKids! العبي واتعلمي الحروف والألوان واسمعي صوت أختك هيفن وهي بتشجعك! بحبك يا لولو ❤️',
+        date: today,
+        read: false
+      }
+    ];
+  },
+
+  getDefaultState(profileId = 'helen') {
     const cogMap = {
       memory: { level: 1, highScore: 0, plays: 0, score: 0 },
       attention: { level: 1, highScore: 0, plays: 0, score: 0 },
@@ -72,15 +96,7 @@ const LumiStorage = {
       history: [],
       dailyHabitsDone: [],
       sessions: [],
-      mailbox: [
-        {
-          id: 'welcome_msg',
-          from: 'بابا مينا ❤️',
-          text: 'أهلاً يا أجمل بنات في الدنيا! استمتعوا باللعب والتعلم.',
-          date: new Date().toLocaleDateString('ar-EG'),
-          read: false
-        }
-      ],
+      mailbox: this.getWelcomeMessagesFor(profileId),
       settings: {
         soundEnabled: true,
         darkMode: false,
@@ -95,14 +111,20 @@ const LumiStorage = {
 
   getState(profileId = null) {
     const id = profileId || this.getActiveProfileId();
-    const def = this.getDefaultState();
+    const def = this.getDefaultState(id);
     try {
       const raw = localStorage.getItem(`LumiKids_State_${id}`);
       if (raw) {
         const parsed = JSON.parse(raw);
+        const existingMail = Array.isArray(parsed.mailbox) ? parsed.mailbox : [];
+        const targetId = id === 'heaven' ? 'baba_mina_heaven_v25' : 'baba_mina_helen_v25';
+        if (!existingMail.some(m => m.id === targetId)) {
+          existingMail.unshift(...this.getWelcomeMessagesFor(id));
+        }
         const merged = {
           ...def,
           ...parsed,
+          mailbox: existingMail,
           cog: { ...def.cog, ...(parsed.cog || {}) },
           progress: { ...def.progress, ...(parsed.progress || {}) },
           settings: { ...def.settings, ...(parsed.settings || {}) }
