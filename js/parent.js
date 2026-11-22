@@ -525,12 +525,22 @@ const LumiParent = {
   async downloadBackup() {
     try {
       const data = await LumiStorage.exportFullBackup();
-      const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+      const jsonStr = JSON.stringify(data);
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const fileName = `LumiKids_Backup_${dateStr}.json`;
+
+      if (window.LumiAndroid && typeof window.LumiAndroid.saveBackupToDownloads === 'function') {
+        const savedPath = window.LumiAndroid.saveBackupToDownloads(fileName, jsonStr);
+        LumiAudio.sfxSuccess();
+        alert(`✅ تم حفظ النسخة الاحتياطية في ذاكرة الهاتف بنجاح:\n${savedPath}`);
+        return;
+      }
+
+      const blob = new Blob([jsonStr], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      const dateStr = new Date().toISOString().slice(0, 10);
       a.href = url;
-      a.download = `LumiKids_Backup_${dateStr}.json`;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -598,12 +608,22 @@ const LumiParent = {
   async downloadBackup() {
     try {
       const data = await LumiStorage.exportFullBackup();
-      const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+      const jsonStr = JSON.stringify(data);
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const fileName = `LumiKids_Backup_${dateStr}.json`;
+
+      if (window.LumiAndroid && typeof window.LumiAndroid.saveBackupToDownloads === 'function') {
+        const savedPath = window.LumiAndroid.saveBackupToDownloads(fileName, jsonStr);
+        LumiAudio.sfxSuccess();
+        alert(`✅ تم حفظ النسخة الاحتياطية في ذاكرة الهاتف بنجاح:\n${savedPath}`);
+        return;
+      }
+
+      const blob = new Blob([jsonStr], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      const dateStr = new Date().toISOString().slice(0, 10);
       a.href = url;
-      a.download = `LumiKids_Backup_${dateStr}.json`;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       a.remove();
