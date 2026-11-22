@@ -14,6 +14,7 @@ const LumiApp = {
       apkBtn.style.display = 'none';
     }
     this.startEyeCareTimer();
+    this.startBedtimeWatcher();
   },
 
 
@@ -66,6 +67,64 @@ const LumiApp = {
     LumiStorage.saveState(state);
     this.applyVisualSettings();
     LumiAudio.sfxClick();
+  },
+
+  
+  _bedtimeBypassUntil: 0,
+
+  startBedtimeWatcher() {
+    this.checkBedtimeLock();
+    setInterval(() => this.checkBedtimeLock(), 15000);
+  },
+
+  checkBedtimeLock() {
+    const overlay = document.getElementById('bedtime-overlay');
+    if (!overlay) return;
+    if (Date.now() < this._bedtimeBypassUntil) {
+      overlay.style.display = 'none';
+      return;
+    }
+    const st = LumiStorage.getState();
+    const cfg = st.settings || {};
+    if (!cfg.bedtimeEnabled) {
+      overlay.style.display = 'none';
+      return;
+    }
+
+    const now = new Date();
+    const curMins = now.getHours() * 60 + now.getMinutes();
+    const [sh, sm] = (cfg.bedtimeStart || '21:00').split(':').map(Number);
+    const [eh, em] = (cfg.bedtimeEnd || '07:00').split(':').map(Number);
+    const startMins = sh * 60 + sm;
+    const endMins = eh * 60 + em;
+
+    const isSleepTime = startMins <= endMins
+      ? (curMins >= startMins && curMins < endMins)
+      : (curMins >= startMins || curMins < endMins);
+
+    if (isSleepTime) {
+      const prof = LumiStorage.getActiveProfile();
+      const msgEl = document.getElementById('bedtime-msg');
+      const badgeEl = document.getElementById('bedtime-time-badge');
+      if (msgEl) msgEl.innerText = `النجوم طلعت والقمر بيقول تصبحي على خير يا ${prof.name}.. نكمل مغامراتنا بكرة الساعة ${cfg.bedtimeEnd || '07:00'} بنشاط! 💤`;
+      if (badgeEl) badgeEl.innerText = `⏰ فترة النوم المحددة: من ${cfg.bedtimeStart || '21:00'} إلى ${cfg.bedtimeEnd || '07:00'}`;
+      overlay.style.display = 'flex';
+    } else {
+      overlay.style.display = 'none';
+    }
+  },
+
+  unlockBedtimeTemp() {
+    const pin = prompt('أدخل الرمز السري للوالدين لفتح التطبيق لمدة 30 دقيقة:');
+    if (!pin) return;
+    const savedPin = LumiStorage.getParentPin ? LumiStorage.getParentPin() : '1234';
+    if (pin === savedPin) {
+      this._bedtimeBypassUntil = Date.now() + 30 * 60 * 1000;
+      document.getElementById('bedtime-overlay').style.display = 'none';
+      LumiAudio.sfxClick();
+    } else {
+      alert('❌ الرمز السري غير صحيح!');
+    }
   },
 
   applyVisualSettings() {

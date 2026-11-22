@@ -124,5 +124,17 @@
   <script src="js/games.js"></script>
   <script src="js/parent.js"></script>
   <script src="js/app.js"></script>
+
+  <!-- شاشة وقت النوم الهادئ (Bedtime Auto-Lock) -->
+  <div id="bedtime-overlay" style="display:none; position:fixed; inset:0; z-index:9999; background:radial-gradient(circle at top, #1E1B4B 0%, #090D16 100%); color:#F8FAFC; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px;">
+    <div style="font-size:5.5rem; margin-bottom:12px; filter:drop-shadow(0 0 20px rgba(250,204,21,0.5));">🌙✨</div>
+    <h1 style="font-size:2rem; color:#FDE047; margin-bottom:10px;">حان وقت النوم السعيد!</h1>
+    <p id="bedtime-msg" style="font-size:1.15rem; color:#CBD5E1; max-width:440px; line-height:1.7; margin-bottom:24px;">
+      النجوم طلعت والقمر بيقول تصبحوا على خير يا أبطال.. نكمل مغامراتنا بكرة الصبح بنشاط! 💤
+    </p>
+    <div id="bedtime-time-badge" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); padding:8px 20px; border-radius:50px; font-size:0.95rem; color:#94A3B8; margin-bottom:28px;"></div>
+    <button onclick="LumiApp.unlockBedtimeTemp()" style="background:transparent; border:1px solid rgba(255,255,255,0.22); color:#94A3B8; padding:8px 18px; border-radius:14px; font-size:0.85rem; cursor:pointer;">🔐 فتح مؤقت للوالدين</button>
+  </div>
+
 </body>
 </html>

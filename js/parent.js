@@ -687,6 +687,15 @@ const LumiParent = {
   },
 
 
+
+  updateBedtimeSetting(key, val) {
+    const state = LumiStorage.getState();
+    state.settings[key] = val;
+    LumiStorage.saveState(state);
+    LumiApp.checkBedtimeLock();
+    LumiAudio.sfxClick();
+  },
+
   toggleDarkMode(enabled) {
     const state = LumiStorage.getState();
     state.settings.darkMode = !!enabled;
