@@ -209,3 +209,5 @@ const LumiRewards = {
     if (typeof LumiParent !== 'undefined') LumiParent.renderParentArea();
   }
 };
+
+window.LumiRewards = LumiRewards;

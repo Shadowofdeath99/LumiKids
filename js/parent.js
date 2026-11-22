@@ -1314,3 +1314,5 @@ const LumiParent = {
     }
   }
 };
+
+window.LumiParent = LumiParent;

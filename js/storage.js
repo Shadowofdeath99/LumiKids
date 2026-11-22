@@ -583,3 +583,5 @@ exportFullBackup() {
     try { localStorage.setItem('LumiRec_' + key, dataUrl); } catch (e) {}
   }
 };
+
+window.LumiStorage = LumiStorage;

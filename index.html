@@ -17,7 +17,10 @@
       <select id="profile-switcher" onchange="LumiApp.onSwitchProfile(this.value)" style="padding:8px 14px; border-radius:50px; border:2px solid var(--primary); font-weight:bold; background:var(--surface); color:var(--text); cursor:pointer; font-size:0.95rem;"></select>
       <select id="profile-switcher" onchange="LumiApp.onSwitchProfile(this.value)" style="padding:8px 14px; border-radius:50px; border:2px solid var(--primary); font-weight:bold; background:var(--surface); color:var(--text); cursor:pointer; font-size:0.95rem;"></select>
       <div class="pill-badge">⭐ <span id="top-stars">0</span></div>
-      <button id="quick-dark-btn" class="nav-btn" onclick="LumiApp.toggleQuickDarkMode()">🌙</button>
+      <button id="pro-arena-btn" class="nav-btn" style="background:linear-gradient(135deg,#4F46E5,#7C3AED);" onclick="LumiProGames.openArena()">🚀 تحديات +10</button>
+<button class="nav-btn" style="background:linear-gradient(135deg,#F59E0B,#EA580C);" onclick="LumiRewards.openHub()">🛒 المتجر والمهام</button>
+<button class="nav-btn" style="background:linear-gradient(135deg,#EC4899,#DB2777);" onclick="LumiApp.openLittleTeacherDirect()">👩‍🏫 المعلمة الصغيرة</button>
+<button id="quick-dark-btn" class="nav-btn" onclick="LumiApp.toggleQuickDarkMode()">🌙</button>
       <button class="nav-btn" onclick="LumiApp.openMailbox()">💌 الرسائل <span id="unread-mail-badge" style="background:#EF4444;color:#fff;border-radius:50%;padding:2px 6px;font-size:0.75rem;display:none;">0</span></button>
       <button class="nav-btn" onclick="LumiApp.showView('home-view')">🎮 الألعاب (20)</button>
       <button class="nav-btn" style="background:#0EA5E9;" onclick="LumiApp.openAdventureMap()">🗺️ رحلة اليوم</button>
@@ -130,13 +133,6 @@
     </div>
   </div>
 
-  <script src="js/storage.js"></script>
-  <script src="js/dictionary.js"></script>
-  <script src="js/audio.js"></script>
-  <script src="js/games.js"></script>
-  <script src="js/parent.js"></script>
-  <script src="js/app.js"></script>
-
   <!-- شاشة وقت النوم الهادئ (Bedtime Auto-Lock) -->
   <div id="bedtime-overlay" style="display:none; position:fixed; inset:0; z-index:9999; background:radial-gradient(circle at top, #1E1B4B 0%, #090D16 100%); color:#F8FAFC; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px;">
     <div style="font-size:5.5rem; margin-bottom:12px; filter:drop-shadow(0 0 20px rgba(250,204,21,0.5));">🌙✨</div>
@@ -149,7 +145,14 @@
     <button id="bedtime-lullaby-btn" onclick="LumiApp.toggleBedtimeLullaby()" style="background:linear-gradient(135deg,#6366F1,#8B5CF6); border:none; color:#FFF; padding:12px 24px; border-radius:50px; font-size:1.05rem; font-weight:bold; cursor:pointer; margin-bottom:14px; box-shadow:0 8px 20px rgba(99,102,241,0.35);">🎵 تشغيل تهويدة النوم الهادئة</button>
     <button onclick="LumiApp.unlockBedtimeTemp()" style="background:transparent; border:1px solid rgba(255,255,255,0.22); color:#94A3B8; padding:8px 18px; border-radius:14px; font-size:0.85rem; cursor:pointer;">🔐 فتح مؤقت للوالدين</button>
   </div>
-
+  
+  <section id="pro-arena-view" class="view-section" style="display:none;"><div id="pro-arena-content" style="max-width:960px;margin:0 auto;"></div></section>
+  <script src="js/dictionary.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/games.js"></script>
   <script src="js/rewards.js"></script>
+  <script src="js/parent.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

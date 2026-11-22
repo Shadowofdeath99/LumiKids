@@ -703,7 +703,40 @@ const LumiApp = {
       document.body.appendChild(c);
       setTimeout(() => c.remove(), 2500);
     }
-  }
+  },
+  showView(viewId) {
+    document.querySelectorAll('.view-section, section[id$="-view"]').forEach(sec => {
+      sec.classList.remove('active');
+      sec.style.display = 'none';
+    });
+    const target = document.getElementById(viewId);
+    if (target) {
+      target.classList.add('active');
+      target.style.display = 'block';
+    }
+  },
+  openLittleTeacherDirect() {
+    this.showView('parent-view');
+    if (typeof LumiParent !== 'undefined') {
+      LumiParent.isUnlocked = true;
+      LumiParent.activeTab = 'studio';
+      if (typeof LumiParent.renderParentArea === 'function') LumiParent.renderParentArea();
+    }
+  },
+  toggleQuickDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    const btn = document.getElementById('quick-dark-btn');
+    if (btn) btn.innerText = isDark ? '☀️' : '🌙';
+    if (typeof LumiStorage !== 'undefined' && LumiStorage.getState) {
+      const st = LumiStorage.getState();
+      st.settings = st.settings || {};
+      st.settings.darkMode = isDark;
+      LumiStorage.saveState(st);
+    }
+  },
 };
 
 window.addEventListener('DOMContentLoaded', () => LumiApp.init());
+
+window.LumiApp = LumiApp;

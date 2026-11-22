@@ -215,3 +215,5 @@ const LumiDictionary = {
     { id: "director", nameEg: "مخرجة الحكايات", nameFr: "Créateur Histoires", icon: "🎬", domain: "french", color: "#E11D48" }
   ]
 };
+
+window.LumiDictionary = LumiDictionary;

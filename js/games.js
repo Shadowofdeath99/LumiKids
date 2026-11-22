@@ -1020,3 +1020,5 @@ const LumiGames = {
     });
   }
 };
+
+window.LumiGames = LumiGames;

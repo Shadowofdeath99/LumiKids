@@ -148,3 +148,5 @@ const LumiAudio = {
     return false;
   }
 };
+
+window.LumiAudio = LumiAudio;
