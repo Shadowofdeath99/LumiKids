@@ -7,6 +7,7 @@ const LumiApp = {
     this.renderProfileSwitcher();
     this.applyVisualSettings();
     this.updateTopStats();
+    this.updateMailboxBadge();
     this.renderHomeGrid();
     const apkBtn = document.getElementById('apk-download-btn');
     if (apkBtn && (window.Capacitor || /wv\)/.test(navigator.userAgent))) {
@@ -32,6 +33,7 @@ const LumiApp = {
     this.renderProfileSwitcher();
     this.applyVisualSettings();
     this.updateTopStats();
+    this.updateMailboxBadge();
     this.showView('home-view');
     LumiAudio.sfxSuccess();
   },
@@ -52,6 +54,7 @@ const LumiApp = {
     this.renderProfileSwitcher();
     this.applyVisualSettings();
     this.updateTopStats();
+    this.updateMailboxBadge();
     this.showView('home-view');
     LumiAudio.sfxSuccess();
   },
@@ -82,6 +85,7 @@ const LumiApp = {
     document.getElementById(viewId).classList.add('active');
     if (viewId === 'home-view') {
       this.updateTopStats();
+    this.updateMailboxBadge();
       this.renderHomeGrid();
     }
   },
@@ -116,6 +120,135 @@ const LumiApp = {
     });
   },
 
+
+
+  _giftRecorder: null,
+  _giftAudioChunks: [],
+  _giftRecordedUrl: null,
+
+  updateMailboxBadge() {
+    const badge = document.getElementById('unread-mail-badge');
+    if (!badge) return;
+    const unread = LumiStorage.getMailbox().filter(m => !m.read).length;
+    badge.innerText = unread;
+    badge.style.display = unread > 0 ? 'inline-block' : 'none';
+  },
+
+  openMailbox() {
+    this.showView('mailbox-view');
+    this._giftRecordedUrl = null;
+    const meta = LumiStorage.getProfilesMeta();
+    const active = LumiStorage.getActiveProfile();
+    const others = meta.list.filter(p => p.id !== active.id);
+    const inbox = LumiStorage.getMailbox(active.id);
+    const myStickers = LumiStorage.getState().stickers || [];
+    const box = document.getElementById('mailbox-container');
+
+    LumiStorage.markMailboxRead(active.id);
+    this.updateMailboxBadge();
+
+    box.innerHTML = `
+      <div style="background:var(--surface); padding:20px; border-radius:24px; box-shadow:var(--shadow); margin-bottom:22px;">
+        <h3 style="color:#EC4899; margin-bottom:12px;">🎁 أرسلي هدية أو رسالة تشجيع صوتية</h3>
+        ${others.length === 0 ? '<p style="color:#64748B;">أضيفي ملفاً ثانياً من لوحة الأهل لتبادل الهدايا بين الإخوة.</p>' : `
+          <div style="display:grid; gap:12px;">
+            <div>
+              <label style="font-weight:bold; display:block; margin-bottom:4px;">إلى:</label>
+              <select id="gift-recipient" style="width:100%; padding:10px; border-radius:14px; border:2px solid #FBCFE8; font-weight:bold;">
+                ${others.map(o => `<option value="${o.id}">${o.avatar} ${o.name}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label style="font-weight:bold; display:block; margin-bottom:4px;">اختاري ملصق هدية:</label>
+              <select id="gift-sticker" style="width:100%; padding:10px; border-radius:14px; border:2px solid #FBCFE8;">
+                <option value="">✨ بدون ملصق (رسالة تشجيع فقط)</option>
+                ${LumiDictionary.stickers.map(s => `<option value="${s.id}">${s.emoji} ${s.eg} ${myStickers.includes(s.id) ? '(في ألبومك)' : ''}</option>`).join('')}
+              </select>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; background:#FDF2F8; padding:12px; border-radius:16px;">
+              <button id="gift-rec-btn" class="play-btn" style="background:#EC4899;" onclick="LumiApp.toggleGiftRecording()">🎙️ سجّلي صوتك للتشجيع</button>
+              <span id="gift-rec-status" style="font-size:0.9rem; color:#831843; font-weight:bold;">اضغطي للتسجيل بصوتك</span>
+            </div>
+            <button class="primary-btn" style="background:linear-gradient(135deg,#EC4899,#F43F5E); margin-top:4px;" onclick="LumiApp.submitGiftMessage()">🚀 إرسال الهدية والرسالة الآن</button>
+          </div>
+        `}
+      </div>
+
+      <div style="background:var(--surface); padding:20px; border-radius:24px; box-shadow:var(--shadow);">
+        <h3 style="margin-bottom:14px;">📬 صندوق رسائل وهدايا ${active.avatar} ${active.name} (${inbox.length})</h3>
+        ${inbox.length === 0 ? '<p style="text-align:center; color:#94A3B8; padding:20px;">لا توجد هدايا بعد.. كوني أول من يرسل هدية جميلة! 🌟</p>' : `
+          <div style="display:grid; gap:12px;">
+            ${inbox.map((m, i) => {
+              const stk = LumiDictionary.stickers.find(s => s.id === m.stickerId);
+              return `
+                <div style="background:#FFF1F2; border:2px solid #FECDD3; border-radius:18px; padding:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="font-size:2.6rem;">${stk ? stk.emoji : m.fromAvatar}</div>
+                    <div>
+                      <div style="font-weight:bold; color:#9F1239;">من: ${m.fromAvatar} ${m.fromName} <span style="font-size:0.8rem; color:#64748B;">(${m.date})</span></div>
+                      <div style="font-size:0.95rem; margin-top:3px;">${stk ? `أهدتك ملصق <b>${stk.eg}</b>! 🎉` : m.note}</div>
+                    </div>
+                  </div>
+                  ${m.audioData ? `<button class="play-btn" style="background:#10B981;" onclick="new Audio(LumiStorage.getMailbox()[${i}].audioData).play()">🔊 اسمعي صوتها</button>` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `}
+      </div>
+    `;
+  },
+
+  async toggleGiftRecording() {
+    const btn = document.getElementById('gift-rec-btn');
+    const status = document.getElementById('gift-rec-status');
+    if (this._giftRecorder && this._giftRecorder.state === 'recording') {
+      this._giftRecorder.stop();
+      btn.innerText = '🎙️ إعادة التسجيل';
+      status.innerText = '✅ تم تسجيل صوتك بنجاح!';
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this._giftAudioChunks = [];
+      this._giftRecorder = new MediaRecorder(stream);
+      this._giftRecorder.ondataavailable = e => { if (e.data.size > 0) this._giftAudioChunks.push(e.data); };
+      this._giftRecorder.onstop = () => {
+        const blob = new Blob(this._giftAudioChunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.onloadend = () => { this._giftRecordedUrl = reader.result; };
+        reader.readAsDataURL(blob);
+        stream.getTracks().forEach(t => t.stop());
+      };
+      this._giftRecorder.start();
+      btn.innerText = '⏹️ إيقاف التسجيل';
+      status.innerText = '🔴 جاري التسجيل... قولي كلمة تشجيع لأختك!';
+    } catch (e) {
+      alert('يرجى السماح بصلاحية الميكروفون لتسجيل الرسالة الصوتية.');
+    }
+  },
+
+  submitGiftMessage() {
+    const toId = document.getElementById('gift-recipient').value;
+    const stickerId = document.getElementById('gift-sticker').value;
+    if (!stickerId && !this._giftRecordedUrl) {
+      return alert('اختاري ملصق هدية أو سجّلي رسالة صوتية أولاً!');
+    }
+    if (stickerId) {
+      const targetKey = `LumiKids_State_${toId}`;
+      const raw = localStorage.getItem(targetKey);
+      const tState = raw ? JSON.parse(raw) : LumiStorage.getEmptyState();
+      if (!tState.stickers.includes(stickerId)) {
+        tState.stickers.push(stickerId);
+        localStorage.setItem(targetKey, JSON.stringify(tState));
+      }
+    }
+    LumiStorage.sendGiftMessage(toId, stickerId, this._giftRecordedUrl);
+    LumiAudio.sfxWin();
+    this.triggerConfetti();
+    alert('🎉 تم إرسال الهدية والرسالة بنجاح!');
+    this.openMailbox();
+  },
 
   openAdventureMap() {
     this.showView('adventure-view');
@@ -171,6 +304,7 @@ const LumiApp = {
       state.stars += 10;
       LumiStorage.saveState(state);
       this.updateTopStats();
+    this.updateMailboxBadge();
       this.triggerConfetti();
       LumiAudio.sfxWin();
       this.openAdventureMap();
@@ -268,6 +402,7 @@ const LumiApp = {
         state.stars += 5;
         LumiStorage.saveState(state);
         this.updateTopStats();
+    this.updateMailboxBadge();
         alert('🎉 برافو عليكي! خلصتي القصة وكسبتي 5 نجوم!');
         this.openStories();
       }
@@ -307,6 +442,7 @@ const LumiApp = {
       rew.claimed = true;
       LumiStorage.saveState(state);
       this.updateTopStats();
+    this.updateMailboxBadge();
       this.triggerConfetti();
       LumiAudio.sfxWin();
       this.openRewards();

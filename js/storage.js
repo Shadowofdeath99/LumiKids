@@ -228,6 +228,40 @@ const LumiStorage = {
 
 
 
+
+  getMailbox(profileId) {
+    const id = profileId || this.getProfilesMeta().activeId;
+    const raw = localStorage.getItem(`LumiKids_Mailbox_${id}`);
+    return raw ? JSON.parse(raw) : [];
+  },
+
+  saveMailbox(profileId, list) {
+    localStorage.setItem(`LumiKids_Mailbox_${profileId}`, JSON.stringify(list));
+  },
+
+  sendGiftMessage(toProfileId, stickerId, audioDataUrl, noteText) {
+    const fromProf = this.getActiveProfile();
+    const list = this.getMailbox(toProfileId);
+    list.unshift({
+      id: 'msg_' + Date.now(),
+      fromId: fromProf.id,
+      fromName: fromProf.name,
+      fromAvatar: fromProf.avatar,
+      stickerId: stickerId || null,
+      audioData: audioDataUrl || null,
+      note: noteText || 'هدية وتشجيع جميل ليكي! 💖',
+      date: new Date().toLocaleString('ar-EG', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' }),
+      read: false
+    });
+    this.saveMailbox(toProfileId, list);
+  },
+
+  markMailboxRead(profileId) {
+    const id = profileId || this.getProfilesMeta().activeId;
+    const list = this.getMailbox(id).map(m => ({ ...m, read: true }));
+    this.saveMailbox(id, list);
+  },
+
   getDailyAdventure() {
     const state = this.getState();
     const today = new Date().toISOString().slice(0, 10);
@@ -292,6 +326,40 @@ const LumiStorage = {
   },
 
 
+
+
+  getMailbox(profileId) {
+    const id = profileId || this.getProfilesMeta().activeId;
+    const raw = localStorage.getItem(`LumiKids_Mailbox_${id}`);
+    return raw ? JSON.parse(raw) : [];
+  },
+
+  saveMailbox(profileId, list) {
+    localStorage.setItem(`LumiKids_Mailbox_${profileId}`, JSON.stringify(list));
+  },
+
+  sendGiftMessage(toProfileId, stickerId, audioDataUrl, noteText) {
+    const fromProf = this.getActiveProfile();
+    const list = this.getMailbox(toProfileId);
+    list.unshift({
+      id: 'msg_' + Date.now(),
+      fromId: fromProf.id,
+      fromName: fromProf.name,
+      fromAvatar: fromProf.avatar,
+      stickerId: stickerId || null,
+      audioData: audioDataUrl || null,
+      note: noteText || 'هدية وتشجيع جميل ليكي! 💖',
+      date: new Date().toLocaleString('ar-EG', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' }),
+      read: false
+    });
+    this.saveMailbox(toProfileId, list);
+  },
+
+  markMailboxRead(profileId) {
+    const id = profileId || this.getProfilesMeta().activeId;
+    const list = this.getMailbox(id).map(m => ({ ...m, read: true }));
+    this.saveMailbox(id, list);
+  },
 
   getDailyAdventure() {
     const state = this.getState();
