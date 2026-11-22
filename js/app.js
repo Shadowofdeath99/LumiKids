@@ -59,9 +59,21 @@ const LumiApp = {
     LumiAudio.sfxSuccess();
   },
 
+  
+  quickToggleDarkMode() {
+    const state = LumiStorage.getState();
+    state.settings.darkMode = !(state.settings && state.settings.darkMode);
+    LumiStorage.saveState(state);
+    this.applyVisualSettings();
+    LumiAudio.sfxClick();
+  },
+
   applyVisualSettings() {
     const st = LumiStorage.getState();
-    document.body.classList.toggle('dark-comfort', !!(st.settings && st.settings.darkMode));
+    const isDark = !!(st.settings && st.settings.darkMode);
+    document.body.classList.toggle('dark-comfort', isDark);
+    const qBtn = document.getElementById('quick-dark-btn');
+    if (qBtn) { qBtn.innerText = isDark ? '☀️' : '🌙'; qBtn.style.background = isDark ? '#F59E0B' : '#334155'; }
     const state = LumiStorage.getState();
     const s = state.settings;
     document.body.style.filter = `brightness(${s.brightness}%)`;
