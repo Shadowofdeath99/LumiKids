@@ -478,7 +478,7 @@ const LumiStorage = {
   // تصفير كل الإحصائيات والتقدم والإعدادات (مع خيار الإبقاء على الأصوات أو مسحها)
 
   async,
-exportFullBackup() {
+async exportFullBackup() {
     const lsData = {};
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
