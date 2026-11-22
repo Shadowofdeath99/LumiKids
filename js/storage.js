@@ -44,6 +44,14 @@ const LumiStorage = {
   getDefaultState() {
     return {
       stars: 10,
+      cog: {
+        memory: { level: 1, highScore: 0, plays: 0 },
+        math: { level: 1, highScore: 0, plays: 0 },
+        letters: { level: 1, highScore: 0, plays: 0 },
+        colors: { level: 1, highScore: 0, plays: 0 },
+        animals: { level: 1, highScore: 0, plays: 0 },
+        puzzles: { level: 1, highScore: 0, plays: 0 }
+      },
       stickers: ['🌟', '🎈'],
       progress: {
         memory: { level: 1, highScore: 0, plays: 0 },
@@ -86,6 +94,7 @@ const LumiStorage = {
           ...this.getDefaultState(),
           ...parsed,
           progress: { ...this.getDefaultState().progress, ...(parsed.progress || {}) },
+          cog: { ...this.getDefaultState().cog, ...(parsed.cog || {}) },
           settings: { ...this.getDefaultState().settings, ...(parsed.settings || {}) }
         };
       }
