@@ -110,7 +110,90 @@ const LumiApp = {
       if (badgeEl) badgeEl.innerText = `⏰ فترة النوم المحددة: من ${cfg.bedtimeStart || '21:00'} إلى ${cfg.bedtimeEnd || '07:00'}`;
       overlay.style.display = 'flex';
     } else {
+      this.stopBedtimeLullaby();
       overlay.style.display = 'none';
+    }
+  },
+
+
+  _lullabyTimer: null,
+  _lullabyAutoStop: null,
+  _lullabyCtx: null,
+  _lullabyPlaying: false,
+
+  toggleBedtimeLullaby() {
+    if (this._lullabyPlaying) {
+      this.stopBedtimeLullaby();
+    } else {
+      this.startBedtimeLullaby();
+    }
+  },
+
+  startBedtimeLullaby() {
+    this.stopBedtimeLullaby();
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+
+    this._lullabyCtx = new AudioCtx();
+    if (this._lullabyCtx.state === 'suspended') this._lullabyCtx.resume();
+    this._lullabyPlaying = true;
+
+    const btn = document.getElementById('bedtime-lullaby-btn');
+    if (btn) {
+      btn.innerText = '⏸️ إيقاف التهويدة الهادئة';
+      btn.style.background = 'linear-gradient(135deg,#EC4899,#F43F5E)';
+    }
+
+    // لحن تهويدة هادئ (Twinkle / Brahms Lullaby notes in Hz)
+    const melody = [
+      261.63, 261.63, 392.00, 392.00, 440.00, 440.00, 392.00, 0,
+      349.23, 349.23, 329.63, 329.63, 293.66, 293.66, 261.63, 0,
+      392.00, 392.00, 349.23, 349.23, 329.63, 329.63, 293.66, 0,
+      392.00, 392.00, 349.23, 349.23, 329.63, 329.63, 293.66, 0
+    ];
+    let step = 0;
+
+    const playNote = () => {
+      if (!this._lullabyPlaying || !this._lullabyCtx) return;
+      const freq = melody[step % melody.length];
+      step++;
+      if (freq > 0) {
+        const now = this._lullabyCtx.currentTime;
+        const osc = this._lullabyCtx.createOscillator();
+        const gain = this._lullabyCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+
+        // غلاف صوتي ناعم يشبه صندوق الموسيقى الليلي
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.06, now + 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.3);
+
+        osc.connect(gain);
+        gain.connect(this._lullabyCtx.destination);
+        osc.start(now);
+        osc.stop(now + 1.35);
+      }
+    };
+
+    playNote();
+    this._lullabyTimer = setInterval(playNote, 750);
+    // إيقاف تلقائي بعد 10 دقائق لتوفير البطارية بعد نوم الأطفال
+    this._lullabyAutoStop = setTimeout(() => this.stopBedtimeLullaby(), 10 * 60 * 1000);
+  },
+
+  stopBedtimeLullaby() {
+    this._lullabyPlaying = false;
+    if (this._lullabyTimer) { clearInterval(this._lullabyTimer); this._lullabyTimer = null; }
+    if (this._lullabyAutoStop) { clearTimeout(this._lullabyAutoStop); this._lullabyAutoStop = null; }
+    if (this._lullabyCtx) {
+      try { this._lullabyCtx.close(); } catch (e) {}
+      this._lullabyCtx = null;
+    }
+    const btn = document.getElementById('bedtime-lullaby-btn');
+    if (btn) {
+      btn.innerText = '🎵 تشغيل تهويدة النوم الهادئة';
+      btn.style.background = 'linear-gradient(135deg,#6366F1,#8B5CF6)';
     }
   },
 
@@ -120,6 +203,7 @@ const LumiApp = {
     const savedPin = LumiStorage.getParentPin ? LumiStorage.getParentPin() : '1234';
     if (pin === savedPin) {
       this._bedtimeBypassUntil = Date.now() + 30 * 60 * 1000;
+      this.stopBedtimeLullaby();
       document.getElementById('bedtime-overlay').style.display = 'none';
       LumiAudio.sfxClick();
     } else {
