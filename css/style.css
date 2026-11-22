@@ -190,3 +190,42 @@ body {
 .modal-card { background: var(--surface); padding: 30px; border-radius: 28px; max-width: 440px; width: 100%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
 .confetti-piece { position: fixed; width: 12px; height: 12px; top: -10px; z-index: 1000; animation: fall 2.2s linear forwards; }
 @keyframes fall { to { transform: translateY(105vh) rotate(720deg); } }
+
+/* تحسينات التجاوب الشامل لكل أحجام الشاشات (Responsive Mobile & Tablet) */
+html, body { max-width: 100vw; overflow-x: hidden; }
+.topbar { padding: 10px 14px; gap: 8px; }
+.brand { font-size: 1.25rem; }
+.top-controls { justify-content: center; gap: 6px; }
+.nav-btn, .pill-badge { padding: 7px 12px; font-size: 0.88rem; }
+.view-section { padding: 14px; }
+
+@media (max-width: 768px) {
+  .topbar { flex-direction: column; border-radius: 0 0 20px 20px; }
+  .games-grid { grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 12px; }
+  .game-card { padding: 14px 10px; border-radius: 18px; }
+  .g-icon { font-size: 2.5rem; }
+  .g-name-eg { font-size: 1rem; }
+  .game-stage { padding: 16px 12px; min-height: 360px; }
+  .prompt-banner { font-size: 1.1rem; margin-bottom: 16px; }
+  .options-row { gap: 10px; }
+  .option-card { min-width: 105px; padding: 14px 16px; border-radius: 18px; }
+  .big-emoji { font-size: 3rem; }
+  .big-letter { font-size: 2.6rem; }
+  .target-preview { font-size: 4rem; }
+  .piano-keys { gap: 8px; }
+  .piano-key { width: 65px; height: 140px; font-size: 1.1rem; }
+  .memory-grid { gap: 8px; }
+  .mem-card { font-size: 1.6rem; border-radius: 14px; }
+  .pattern-strip { font-size: 2rem; padding: 10px 14px; gap: 8px; }
+  .basket-btn { padding: 16px 18px; font-size: 1.1rem; }
+  .story-scene-box { padding: 20px 14px; }
+  .story-text { font-size: 1.1rem; padding: 12px; }
+  .story-objects { gap: 16px; }
+  .story-obj-btn { width: 85px; height: 85px; font-size: 3.2rem; }
+  .dash-cards-grid, .dash-split, .settings-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 400px) {
+  .games-grid { grid-template-columns: repeat(2, 1fr); }
+  #maze-box, #sym-canvas { max-width: 100%; height: auto; }
+}
