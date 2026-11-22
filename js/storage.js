@@ -477,7 +477,8 @@ const LumiStorage = {
 
   // تصفير كل الإحصائيات والتقدم والإعدادات (مع خيار الإبقاء على الأصوات أو مسحها)
 
-  async exportFullBackup() {
+  async
+exportFullBackup() {
     const lsData = {};
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
@@ -572,5 +573,13 @@ const LumiStorage = {
         await this.saveVoice(v.key, v.parent, blob);
       }
     }
+  },
+  async getRecording(key) {
+    if (typeof this.getVoiceNote === 'function') return await this.getVoiceNote(key);
+    try { return localStorage.getItem('LumiRec_' + key); } catch (e) { return null; }
+  },
+  async saveRecording(key, dataUrl) {
+    if (typeof this.saveVoiceNote === 'function') return await this.saveVoiceNote(key, dataUrl);
+    try { localStorage.setItem('LumiRec_' + key, dataUrl); } catch (e) {}
   }
 };
