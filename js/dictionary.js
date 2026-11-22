@@ -167,26 +167,69 @@ const LumiDictionary = {
   // 7. القصص التفاعلية
   stories: [
     {
-      id: "story_1",
-      titleEg: "الأرنب لومي والنجمة الضائعة",
-      titleFr: "Lumi le Lapin et l'Étoile Perdue",
-      cover: "🐰",
-      scenes: [
-        { id: "st1_s1", bg: "#1E1B4B", eg: "في ليلة هادية، الأرنب لومي كان بيبص للسما وشاف القمر زعلان. يلا نلمس القمر عشان نعرف ماله!", fr: "Par une nuit calme, Lumi regarde le ciel. Touche la lune !", targetIcon: "🌙", distractors: ["☁️", "🌲"] },
-        { id: "st1_s2", bg: "#312E81", eg: "القمر قاله: النجمة الصغيرة وقعت في الغابة ومش عارفة ترجع! يلا ندور عليها بين الشجر. المس النجمة!", fr: "La petite étoile est tombée dans la forêt. Touche l'étoile !", targetIcon: "⭐", distractors: ["🍄", "🌿"] },
-        { id: "st1_s3", bg: "#1E3A8A", eg: "لقينا النجمة! بس محتاجة فراشة تطير بيها للسما. يلا ننده للفراشة الجميلة ونلمسها!", fr: "Nous avons trouvé l'étoile ! Touche le papillon pour l'aider !", targetIcon: "🦋", distractors: ["🐢", "🐌"] },
-        { id: "st1_s4", bg: "#0F172A", eg: "الفراشة طارت بالنجمة ورجعتها جنب القمر، والسما نورت كلها! برافو عليكي يا بطلة!", fr: "Le papillon a ramené l'étoile près de la lune. Bravo !", targetIcon: "✨", distractors: ["🌙", "⭐"] }
+      id: "story_rabbit",
+      titleEg: "الأرنب الذكي والجزرة السحرية 🐰",
+      titleFr: "Le lapin malin et la carotte magique",
+      icon: "🐰",
+      pages: [
+        { icon: "🐰", eg: "كان يا ما كان أرنب صغير اسمه بونبون بيحب يساعد كل أصحابه في الغابة.", fr: "Il était une fois un petit lapin nommé Bonbon qui aimait aider ses amis." },
+        { icon: "🥕", eg: "في يوم لقى جزرة كبيرة بتلمع تحت الشجرة، فقرر يقسمها مع السلحفاة والعصفور.", fr: "Un jour, il a trouvé une grande carotte brillante et l'a partagée avec ses amis." },
+        { icon: "🎉", eg: "فرح أصحابه جداً وقالوا له: المشاركة بتخلي السعادة أكبر بكتير!", fr: "Ses amis étaient très heureux : le partage rend la joie encore plus grande !" }
       ]
     },
     {
-      id: "story_2",
-      titleEg: "رحلة القطة ميمي للسوق",
-      titleFr: "Mimi le Chat au Marché",
-      cover: "🐱",
-      scenes: [
-        { id: "st2_s1", bg: "#FEF3C7", eg: "القطة ميمي صحيت الصبح جعانة وعايزة تعمل سلطة فواكه. أول حاجة عايزة تفاحة حمرا. فين التفاحة؟", fr: "Mimi veut faire une salade de fruits. Où est la pomme ?", targetIcon: "🍎", distractors: ["🥕", "🥦"] },
-        { id: "st2_s2", bg: "#FFEDD5", eg: "شطورة! دلوقتي ميمي عايزة موزة صفرا حلوة. يلا نختار الموزة!", fr: "Bravo ! Maintenant Mimi veut une banane. Touche la banane !", targetIcon: "🍌", distractors: ["🍆", "🥔"] },
-        { id: "st2_s3", bg: "#FCE7F3", eg: "وآخر حاجة فراولة لذيذة! فين الفراولة يا بطلة؟", fr: "Et enfin une délicieuse fraise ! Où est la fraise ?", targetIcon: "🍓", distractors: ["🌽", "🧅"] }
+      id: "story_stars",
+      titleEg: "رحلة الأميرة إلى كوكب النجوم 🚀",
+      titleFr: "Le voyage de la princesse vers les étoiles",
+      icon: "🚀",
+      pages: [
+        { icon: "🚀", eg: "ركبت الأميرة الصغيرة صاروخها الفضي وطلعت فوق السحاب عشان تعد النجوم.", fr: "La petite princesse a pris sa fusée argentée pour compter les étoiles dans le ciel." },
+        { icon: "🌙", eg: "قابلت القمر المبتسم وعلمها أسماء الكواكب والألوان بالفرنساوي.", fr: "Elle a rencontré la lune souriante qui lui a appris les couleurs en français." },
+        { icon: "⭐", eg: "رجعت بيتها وهي معها نجمة منورة بتفكرها دايماً بحب العلم والاستكشاف.", fr: "Elle est rentrée chez elle avec une belle étoile brillante pleine de savoir." }
+      ]
+    },
+    {
+      id: "story_butterfly",
+      titleEg: "الفراشة الملونة والحديقة السعيدة 🦋",
+      titleFr: "Le papillon coloré et le jardin heureux",
+      icon: "🦋",
+      pages: [
+        { icon: "🐛", eg: "في حديقة مليانة ورد، كانت فيه دودة صغيرة بتحلم تطير في السما.", fr: "Dans un jardin fleuri, une petite chenille rêvait de voler dans le ciel." },
+        { icon: "🦋", eg: "صبرت واتعلمت، وبعد شوية بقت فراشة جميلة بأجنحة حمرا وزرقا وصفرا.", fr: "Avec de la patience, elle est devenue un magnifique papillon multicolore." },
+        { icon: "🌸", eg: "طارت فوق الورد وغنت أجمل أغنية للصبر والأمل.", fr: "Elle a volé au-dessus des fleurs en chantant une douce mélodie." }
+      ]
+    },
+    {
+      id: "story_dolphin",
+      titleEg: "الدولفين لولو وكنز البحر 🐬",
+      titleFr: "Loulou le dauphin et le trésor de la mer",
+      icon: "🐬",
+      pages: [
+        { icon: "🌊", eg: "في بحر إسكندرية الأزرق الجميل، كان بيعيش دولفين شقي اسمه لولو.", fr: "Dans la belle mer bleue, vivait un petit dauphin joyeux nommé Loulou." },
+        { icon: "🐚", eg: "لقى لولو صدفة بتلمع جواها لؤلؤة، فرجعها لصاحبتها السمكة الذهبية.", fr: "Loulou a trouvé un coquillage brillant et l'a rendu au petit poisson d'or." },
+        { icon: "🏆", eg: "كل أسماك البحر صفقت للولو لأنه أمين وبيحب الخير.", fr: "Tous les poissons ont applaudi Loulou parce qu'il est honnête et gentil." }
+      ]
+    },
+    {
+      id: "story_robot",
+      titleEg: "الروبوت الصغير وتعلم النظام 🤖",
+      titleFr: "Le petit robot apprend l'ordre",
+      icon: "🤖",
+      pages: [
+        { icon: "🧸", eg: "كان الروبوت تيكو بيلعب بألعابه وبعدين يسيبها مرمية في الأوضة.", fr: "Le petit robot Tiko jouait avec ses jouets mais oubliait de les ranger." },
+        { icon: "🧹", eg: "لما رتب ألعابه وغسل سنانه قبل النوم، لقى كل حاجة جاهزة الصبح.", fr: "Quand il a rangé ses jouets et brossé ses dents, tout était prêt le matin." },
+        { icon: "🌟", eg: "أخد تيكو وسام البطل المنظم وبقى قدوة لكل أصحابه.", fr: "Tiko a reçu la médaille du champion bien organisé !" }
+      ]
+    },
+    {
+      id: "story_sisters",
+      titleEg: "الأختان البطلتان ومغامرة المعرفة 👭",
+      titleFr: "Les deux sœurs héroïnes",
+      icon: "👭",
+      pages: [
+        { icon: "👸", eg: "الأخت الكبيرة الذكية كانت بتعلم أختها الصغيرة الحروف والأرقام بحب وصبر.", fr: "La grande sœur intelligente apprenait les lettres à sa petite sœur avec amour." },
+        { icon: "🦄", eg: "والأخت الصغيرة الشطورة كانت بتسمع الكلام وتجاوب صح وتكسب نجوم.", fr: "Et la petite sœur écoutait attentivement et gagnait plein d'étoiles." },
+        { icon: "❤️", eg: "وبالتعاون والحب بقوا أحلى فريق في الدنيا كلها!", fr: "Grâce à leur amour, elles formaient la meilleure équipe du monde !" }
       ]
     }
   ],

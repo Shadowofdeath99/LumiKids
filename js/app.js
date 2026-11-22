@@ -740,3 +740,191 @@ const LumiApp = {
 window.addEventListener('DOMContentLoaded', () => LumiApp.init());
 
 window.LumiApp = LumiApp;
+
+
+// === ترقيع شامل لضمان عمل جميع الأزرار والقوائم والصوت والقصص ===
+Object.assign(LumiApp, {
+  renderProfileSwitcher() {
+    const sel = document.getElementById('profile-switcher');
+    if (!sel || typeof LumiStorage === 'undefined') return;
+    const profs = LumiStorage.getProfiles();
+    const activeId = LumiStorage.getActiveProfileId();
+    sel.innerHTML = profs.map(p =>
+      `<option value="${p.id}" ${p.id === activeId ? 'selected' : ''}>${p.avatar || '👧'} ${p.name} (${p.age} س)</option>`
+    ).join('');
+    sel.value = activeId;
+  },
+
+  onSwitchProfile(newId) {
+    if (!newId || typeof LumiStorage === 'undefined') return;
+    LumiStorage.setActiveProfile(newId);
+    this.renderProfileSwitcher();
+    if (typeof this.updateTopStats === 'function') this.updateTopStats();
+    if (typeof this.updateMailboxBadge === 'function') this.updateMailboxBadge();
+    if (typeof this.renderGamesGrid === 'function') this.renderGamesGrid();
+    if (typeof this.applyProfileAgeFilter === 'function') this.applyProfileAgeFilter();
+    this.showView('home-view');
+  },
+
+  openLittleTeacherDirect() {
+    this.showView('parent-view');
+    if (typeof LumiParent !== 'undefined') {
+      LumiParent.isUnlocked = true;
+      LumiParent.activeParentTab = 'studio';
+      LumiParent.activeTab = 'studio';
+      document.querySelectorAll('.parent-tab-btn').forEach(b => b.classList.remove('active'));
+      const studioTab = document.querySelector('[onclick*="studio"]');
+      if (studioTab) studioTab.classList.add('active');
+      if (typeof LumiParent.renderParentArea === 'function') LumiParent.renderParentArea();
+    }
+  },
+
+  toggleQuickDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    document.body.style.background = isDark ? '#0F172A' : '';
+    document.body.style.color = isDark ? '#F8FAFC' : '';
+    const btn = document.getElementById('quick-dark-btn');
+    if (btn) btn.innerText = isDark ? '☀️' : '🌙';
+    if (typeof LumiStorage !== 'undefined') {
+      const st = LumiStorage.getState();
+      st.settings.darkMode = isDark;
+      LumiStorage.saveState(st);
+    }
+  },
+
+  openMailbox() {
+    this.showView('mailbox-view');
+    const st = LumiStorage.getState();
+    const prof = LumiStorage.getActiveProfile();
+    const box = document.getElementById('mailbox-container');
+    if (!box) return;
+    const msgs = st.mailbox || [];
+    msgs.forEach(m => m.read = true);
+    LumiStorage.saveState(st);
+    if (typeof this.updateMailboxBadge === 'function') this.updateMailboxBadge();
+
+    box.innerHTML = `
+      <div style="max-width:650px; margin:0 auto;">
+        <h3 style="text-align:center; margin-bottom:16px;">💌 صندوق رسائل ${prof.name}</h3>
+        ${msgs.length === 0 ? '<p style="text-align:center;">لا توجد رسائل حالياً</p>' : msgs.map(m => `
+          <div style="background:var(--surface, #fff); border-right:5px solid #EC4899; padding:16px; border-radius:16px; margin-bottom:12px; box-shadow:0 4px 12px rgba(0,0,0,0.06);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+              <strong>${m.from}</strong>
+              <small style="color:#64748B;">${m.date || ''}</small>
+            </div>
+            <p style="margin:0; font-size:1.05rem; line-height:1.7;">${m.text}</p>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  },
+
+  openAdventureMap() {
+    this.showView('adventure-view');
+    const st = LumiStorage.getState();
+    const box = document.getElementById('adventure-container');
+    if (!box) return;
+    const games = (typeof LumiDictionary !== 'undefined' && LumiDictionary.games) ? LumiDictionary.games : [];
+    box.innerHTML = `
+      <div style="max-width:760px; margin:0 auto; text-align:center;">
+        <h3>🗺️ خريطة رحلة اليوم والمغامرات (${games.length} محطة)</h3>
+        <div class="games-grid" style="margin-top:14px;">
+          ${games.map((g, idx) => {
+            const prog = (st.progress && st.progress[g.id]) || { level: 1, completed: 0 };
+            return `
+              <div class="game-card" onclick="LumiGames.start('${g.id}')" style="cursor:pointer; border-top:4px solid ${g.color || '#6366F1'};">
+                <span class="g-icon">${g.icon}</span>
+                <div class="g-name-eg">${idx + 1}. ${g.nameEg}</div>
+                <div class="g-lvl-tag">المستوى ${prog.level || 1} ⭐</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  },
+
+  openStories() {
+    this.showView('stories-view');
+    const box = document.getElementById('stories-container');
+    if (!box) return;
+    const stories = (typeof LumiDictionary !== 'undefined' && LumiDictionary.stories) ? LumiDictionary.stories : [];
+    box.innerHTML = `
+      <div style="max-width:780px; margin:0 auto;">
+        <h3 style="text-align:center; margin-bottom:16px;">📚 مكتبة القصص الناطقة بالعربية والفرنسية (${stories.length} قصص)</h3>
+        <div class="games-grid">
+          ${stories.map((s, idx) => `
+            <div class="game-card" onclick="LumiApp.readStory(${idx})" style="cursor:pointer;">
+              <span class="g-icon">${s.icon || '📖'}</span>
+              <div class="g-name-eg">${s.titleEg}</div>
+              <div class="g-lvl-tag">${s.titleFr}</div>
+              <button class="primary-btn" style="margin-top:8px;">استمعي للقصة 🔊</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  },
+
+  readStory(storyIdx, pageIdx = 0) {
+    const stories = LumiDictionary.stories || [];
+    const story = stories[storyIdx];
+    if (!story) return;
+    const page = story.pages[pageIdx] || story.pages[0];
+    const box = document.getElementById('stories-container');
+    box.innerHTML = `
+      <div style="max-width:650px; margin:0 auto; background:var(--surface,#fff); padding:24px; border-radius:22px; box-shadow:0 8px 24px rgba(0,0,0,0.08); text-align:center;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <button class="secondary-btn" onclick="LumiApp.openStories()">⬅️ كل القصص</button>
+          <span>صفحة ${pageIdx + 1} من ${story.pages.length}</span>
+        </div>
+        <div style="font-size:4.5rem; margin:12px 0;">${page.icon}</div>
+        <p style="font-size:1.25rem; font-weight:bold; line-height:1.8; margin:12px 0;">${page.eg}</p>
+        <p style="font-size:1.1rem; color:#4F46E5; font-style:italic; margin:10px 0;">${page.fr}</p>
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:18px 0;">
+          <button class="primary-btn" onclick="LumiApp.speakStoryText('${story.id}_${pageIdx}_eg', \`${page.eg.replace(/`/g, '')}\`, 'ar-EG')">🔊 اسمع بالعربي</button>
+          <button class="primary-btn" style="background:#0EA5E9;" onclick="LumiApp.speakStoryText('${story.id}_${pageIdx}_fr', \`${page.fr.replace(/`/g, '')}\`, 'fr-FR')">🇫🇷 Écouter en Français</button>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:16px;">
+          <button class="secondary-btn" ${pageIdx === 0 ? 'disabled' : ''} onclick="LumiApp.readStory(${storyIdx}, ${pageIdx - 1})">السابق</button>
+          ${pageIdx < story.pages.length - 1
+            ? `<button class="primary-btn" onclick="LumiApp.readStory(${storyIdx}, ${pageIdx + 1})">التالي ⬅️</button>`
+            : `<button class="primary-btn" style="background:#10B981;" onclick="LumiStorage.addStars(5, '${story.titleEg}'); LumiApp.updateTopStats(); LumiApp.triggerConfetti(); LumiApp.openStories();">إنهاء القصة (+5 ⭐)</button>`}
+        </div>
+      </div>
+    `;
+    this.speakStoryText(`${story.id}_${pageIdx}_eg`, page.eg, 'ar-EG');
+  },
+
+  async speakStoryText(customKey, text, lang) {
+    try {
+      if (typeof LumiStorage !== 'undefined') {
+        const rec = await LumiStorage.getVoiceNote(customKey);
+        if (rec) {
+          const aud = new Audio(rec);
+          await aud.play();
+          return;
+        }
+      }
+    } catch (e) {}
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang;
+      u.rate = 0.92;
+      window.speechSynthesis.speak(u);
+    }
+  }
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    if (window.LumiApp) {
+      LumiApp.renderProfileSwitcher();
+      if (typeof LumiApp.renderGamesGrid === 'function') LumiApp.renderGamesGrid();
+      if (typeof LumiApp.applyProfileAgeFilter === 'function') LumiApp.applyProfileAgeFilter();
+      if (typeof LumiApp.updateMailboxBadge === 'function') LumiApp.updateMailboxBadge();
+    }
+  }, 150);
+});

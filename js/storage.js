@@ -1,17 +1,3 @@
-function createSafeProxy(obj) {
-  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
-  return new Proxy(obj, {
-    get(target, prop) {
-      if (prop in target) {
-        const val = target[prop];
-        return (val && typeof val === 'object' && !Array.isArray(val)) ? createSafeProxy(val) : val;
-      }
-      if (typeof prop === 'symbol' || prop === 'then' || prop === 'toJSON') return undefined;
-      return createSafeProxy({ level: 1, highScore: 0, plays: 0, score: 0 });
-    }
-  });
-}
-
 const LumiStorage = {
   DB_NAME: 'LumiKids_VoiceDB',
   STORE_NAME: 'recordings',
@@ -58,53 +44,63 @@ const LumiStorage = {
   getWelcomeMessagesFor(profileId) {
     const today = new Date().toLocaleDateString('ar-EG');
     if (profileId === 'heaven') {
-      return [
-        {
-          id: 'baba_mina_heaven_v25',
-          from: 'بابا مينا ❤️',
-          text: 'إلى أميرتي الكبيرة وبطلتي الذكية هيفن (10 سنوات) 👸✨.. فخور بيكِ وبشطارتك! جربي تحديات الأبطال +10، ولا تنسي تسجلي الكلمات بصوتك الحلو في وضع المعلمة الصغيرة لأختك هيلن عشان تكسبي نجوم مضاعفة! بحبك قد الدنيا ❤️',
-          date: today,
-          read: false
-        }
-      ];
-    }
-    return [
-      {
-        id: 'baba_mina_helen_v25',
+      return [{
+        id: 'baba_mina_heaven_v25',
         from: 'بابا مينا ❤️',
-        text: 'إلى بنوتي الجميلة وسكرة البيت هيلن (3 سنوات) 🦄🎈.. أهلاً بيكِ في عالم LumiKids! العبي واتعلمي الحروف والألوان واسمعي صوت أختك هيفن وهي بتشجعك! بحبك يا لولو ❤️',
+        text: 'إلى أميرتي الكبيرة وبطلتي الذكية هيفن (10 سنوات) 👸✨.. فخور بيكِ وبشطارتك! جربي تحديات الأبطال +10، وسجلي الكلمات والقصص بصوتك الحلو في وضع المعلمة الصغيرة لأختك هيلن! بحبك قد الدنيا ❤️',
         date: today,
         read: false
-      }
-    ];
+      }];
+    }
+    return [{
+      id: 'baba_mina_helen_v25',
+      from: 'بابا مينا ❤️',
+      text: 'إلى بنوتي الجميلة وسكرة البيت هيلن (3 سنوات) 🦄🎈.. أهلاً بيكِ في عالم LumiKids! العبي واتعلمي الحروف والألوان واسمعي القصص بصوت أختك هيفن! بحبك يا لولو ❤️',
+      date: today,
+      read: false
+    }];
   },
 
   getDefaultState(profileId = 'helen') {
-    const cogMap = {
-      memory: { level: 1, highScore: 0, plays: 0, score: 0 },
-      attention: { level: 1, highScore: 0, plays: 0, score: 0 },
-      logic: { level: 1, highScore: 0, plays: 0, score: 0 },
-      language: { level: 1, highScore: 0, plays: 0, score: 0 },
-      math: { level: 1, highScore: 0, plays: 0, score: 0 },
-      creativity: { level: 1, highScore: 0, plays: 0, score: 0 }
-    };
+    const gamesList = (typeof LumiDictionary !== 'undefined' && Array.isArray(LumiDictionary.games))
+      ? LumiDictionary.games
+      : [];
+    const progress = {};
+    gamesList.forEach(g => {
+      progress[g.id] = { level: 1, correct: 0, wrong: 0, completed: 0, stars: 0 };
+    });
+
     return {
-      stars: 10,
-      stickers: ['🌟', '🎈'],
-      cog: cogMap,
-      progress: cogMap,
+      stars: 15,
+      stickers: ['🌟', '🎈', '🦄'],
+      progress,
+      cognitive: {
+        memory: 10,
+        logic: 10,
+        french: 10,
+        visual: 10,
+        motor: 10,
+        mistakeLog: {}
+      },
+      sessions: [],
       history: [],
       dailyHabitsDone: [],
-      sessions: [],
       mailbox: this.getWelcomeMessagesFor(profileId),
       settings: {
         soundEnabled: true,
         darkMode: false,
+        sessionMinutes: 20,
         bedtimeEnabled: false,
         bedtimeStart: '21:30',
         bedtimeEnd: '07:00',
         parentPin: '1234',
-        lockedGames: []
+        lockedGames: [],
+        realRewards: [
+          { id: 1, title: 'قصة إضافية قبل النوم 📖', cost: 15, claimed: false },
+          { id: 2, title: 'اختيار أكلة العشاء المفضلة 🍕', cost: 30, claimed: false },
+          { id: 3, title: 'نزهة حلوة مع بابا وماما 🎡', cost: 50, claimed: false },
+          { id: 4, title: 'هدية مفاجأة من بابا مينا 🎁', cost: 80, claimed: false }
+        ]
       }
     };
   },
@@ -121,19 +117,33 @@ const LumiStorage = {
         if (!existingMail.some(m => m.id === targetId)) {
           existingMail.unshift(...this.getWelcomeMessagesFor(id));
         }
-        const merged = {
+        const safeCog = { ...def.cognitive, ...(parsed.cognitive || {}) };
+        ['memory', 'logic', 'french', 'visual', 'motor'].forEach(k => {
+          if (typeof safeCog[k] !== 'number' || isNaN(safeCog[k])) safeCog[k] = 10;
+        });
+        if (!safeCog.mistakeLog || typeof safeCog.mistakeLog !== 'object') safeCog.mistakeLog = {};
+
+        const safeSettings = { ...def.settings, ...(parsed.settings || {}) };
+        if (!Array.isArray(safeSettings.realRewards) || safeSettings.realRewards.length === 0) {
+          safeSettings.realRewards = def.settings.realRewards;
+        }
+        if (!Array.isArray(safeSettings.lockedGames)) safeSettings.lockedGames = [];
+
+        return {
           ...def,
           ...parsed,
-          mailbox: existingMail,
-          cog: { ...def.cog, ...(parsed.cog || {}) },
           progress: { ...def.progress, ...(parsed.progress || {}) },
-          settings: { ...def.settings, ...(parsed.settings || {}) }
+          cognitive: safeCog,
+          sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
+          history: Array.isArray(parsed.history) ? parsed.history : [],
+          dailyHabitsDone: Array.isArray(parsed.dailyHabitsDone) ? parsed.dailyHabitsDone : [],
+          mailbox: existingMail,
+          settings: safeSettings
         };
-        return createSafeProxy(merged);
       }
     } catch (e) {}
     localStorage.setItem(`LumiKids_State_${id}`, JSON.stringify(def));
-    return createSafeProxy(def);
+    return def;
   },
 
   saveState(state, profileId = null) {
@@ -145,13 +155,7 @@ const LumiStorage = {
   addStars(count, gameName = 'نشاط تعليمي', level = 1) {
     const st = this.getState();
     st.stars = (st.stars || 0) + count;
-    st.history = st.history || [];
-    st.history.unshift({
-      game: gameName,
-      level: level,
-      stars: count,
-      date: new Date().toLocaleString('ar-EG')
-    });
+    st.history.unshift({ game: gameName, level, stars: count, date: new Date().toLocaleString('ar-EG') });
     this.saveState(st);
     return st.stars;
   },
@@ -162,9 +166,7 @@ const LumiStorage = {
       const req = indexedDB.open(this.DB_NAME, 1);
       req.onupgradeneeded = e => {
         const db = e.target.result;
-        if (!db.objectStoreNames.contains(this.STORE_NAME)) {
-          db.createObjectStore(this.STORE_NAME);
-        }
+        if (!db.objectStoreNames.contains(this.STORE_NAME)) db.createObjectStore(this.STORE_NAME);
       };
       req.onsuccess = e => resolve(e.target.result);
       req.onerror = e => reject(e.target.error);
@@ -213,12 +215,8 @@ const LumiStorage = {
         const req = store.openCursor();
         req.onsuccess = e => {
           const cursor = e.target.result;
-          if (cursor) {
-            out[cursor.key] = cursor.value;
-            cursor.continue();
-          } else {
-            resolve();
-          }
+          if (cursor) { out[cursor.key] = cursor.value; cursor.continue(); }
+          else resolve();
         };
         req.onerror = () => resolve();
       });
@@ -250,16 +248,10 @@ const LumiStorage = {
         localStorage.setItem(`LumiKids_State_${pid}`, JSON.stringify(backup.states[pid]));
       });
     }
-    if (backup.familyRewards) {
-      localStorage.setItem('LumiKids_FamilyRewards', JSON.stringify(backup.familyRewards));
-    }
-    if (backup.teacherWords) {
-      localStorage.setItem('LumiKids_TeacherWords', JSON.stringify(backup.teacherWords));
-    }
+    if (backup.familyRewards) localStorage.setItem('LumiKids_FamilyRewards', JSON.stringify(backup.familyRewards));
+    if (backup.teacherWords) localStorage.setItem('LumiKids_TeacherWords', JSON.stringify(backup.teacherWords));
     if (backup.voiceNotes) {
-      for (const [k, v] of Object.entries(backup.voiceNotes)) {
-        await this.saveVoiceNote(k, v);
-      }
+      for (const [k, v] of Object.entries(backup.voiceNotes)) await this.saveVoiceNote(k, v);
     }
   }
 };
