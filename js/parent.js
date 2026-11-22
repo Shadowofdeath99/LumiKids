@@ -380,6 +380,7 @@ const LumiParent = {
 
     container.innerHTML = `
       <div class="settings-grid">
+        ${this.renderParentRewardsBox()}
 
         <div class="set-box">
           <h3>🏆 شهادة تقدير وتفوق مصورة</h3>
