@@ -1,6 +1,5 @@
-
 function createSafeProxy(obj) {
-  if (!obj || typeof obj !== 'object') return obj;
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
   return new Proxy(obj, {
     get(target, prop) {
       if (prop in target) {
@@ -57,27 +56,22 @@ const LumiStorage = {
   },
 
   getDefaultState() {
-    return createSafeProxy({
+    const cogMap = {
+      memory: { level: 1, highScore: 0, plays: 0, score: 0 },
+      attention: { level: 1, highScore: 0, plays: 0, score: 0 },
+      logic: { level: 1, highScore: 0, plays: 0, score: 0 },
+      language: { level: 1, highScore: 0, plays: 0, score: 0 },
+      math: { level: 1, highScore: 0, plays: 0, score: 0 },
+      creativity: { level: 1, highScore: 0, plays: 0, score: 0 }
+    };
+    return {
       stars: 10,
-      cog: {
-        memory: { level: 1, highScore: 0, plays: 0 },
-        math: { level: 1, highScore: 0, plays: 0 },
-        letters: { level: 1, highScore: 0, plays: 0 },
-        colors: { level: 1, highScore: 0, plays: 0 },
-        animals: { level: 1, highScore: 0, plays: 0 },
-        puzzles: { level: 1, highScore: 0, plays: 0 }
-      },
       stickers: ['🌟', '🎈'],
-      progress: {
-        memory: { level: 1, highScore: 0, plays: 0 },
-        math: { level: 1, highScore: 0, plays: 0 },
-        letters: { level: 1, highScore: 0, plays: 0 },
-        colors: { level: 1, highScore: 0, plays: 0 },
-        animals: { level: 1, highScore: 0, plays: 0 },
-        puzzles: { level: 1, highScore: 0, plays: 0 }
-      },
+      cog: cogMap,
+      progress: cogMap,
       history: [],
-      dailyHabitsDone: {},
+      dailyHabitsDone: [],
+      sessions: [],
       mailbox: [
         {
           id: 'welcome_msg',
@@ -101,20 +95,21 @@ const LumiStorage = {
 
   getState(profileId = null) {
     const id = profileId || this.getActiveProfileId();
+    const def = this.getDefaultState();
     try {
       const raw = localStorage.getItem(`LumiKids_State_${id}`);
       if (raw) {
         const parsed = JSON.parse(raw);
-        return createSafeProxy({
-          ...this.getDefaultState(),
+        const merged = {
+          ...def,
           ...parsed,
-          progress: { ...this.getDefaultState().progress, ...(parsed.progress || {}) },
-          cog: { ...this.getDefaultState().cog, ...(parsed.cog || {}) },
-          settings: { ...this.getDefaultState().settings, ...(parsed.settings || {}) }
-        });
+          cog: { ...def.cog, ...(parsed.cog || {}) },
+          progress: { ...def.progress, ...(parsed.progress || {}) },
+          settings: { ...def.settings, ...(parsed.settings || {}) }
+        };
+        return createSafeProxy(merged);
       }
     } catch (e) {}
-    const def = this.getDefaultState();
     localStorage.setItem(`LumiKids_State_${id}`, JSON.stringify(def));
     return createSafeProxy(def);
   },
@@ -183,13 +178,8 @@ const LumiStorage = {
     try { return localStorage.getItem('LumiRec_' + key); } catch (e) { return null; }
   },
 
-  async getRecording(key) {
-    return await this.getVoiceNote(key);
-  },
-
-  async saveRecording(key, dataUrl) {
-    return await this.saveVoiceNote(key, dataUrl);
-  },
+  async getRecording(key) { return await this.getVoiceNote(key); },
+  async saveRecording(key, dataUrl) { return await this.saveVoiceNote(key, dataUrl); },
 
   async getAllVoiceNotes() {
     const out = {};
@@ -219,7 +209,7 @@ const LumiStorage = {
     const states = {};
     profiles.forEach(p => { states[p.id] = this.getState(p.id); });
     const voiceNotes = await this.getAllVoiceNotes();
-    return createSafeProxy({
+    return {
       version: '2.5',
       exportedAt: new Date().toISOString(),
       profiles,
