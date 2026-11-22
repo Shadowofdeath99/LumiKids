@@ -152,6 +152,16 @@ const LumiStorage = {
     if (typeof LumiCloud !== 'undefined') LumiCloud.scheduleAutoPush();
   },
 
+  getMailbox(profileId = null) {
+    return this.getState(profileId).mailbox || [];
+  },
+
+  markAllMailRead(profileId = null) {
+    const st = this.getState(profileId);
+    (st.mailbox || []).forEach(m => m.read = true);
+    this.saveState(st, profileId);
+  },
+
   addStars(count, gameName = 'نشاط تعليمي', level = 1) {
     const st = this.getState();
     st.stars = (st.stars || 0) + count;
