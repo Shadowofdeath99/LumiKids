@@ -17,6 +17,8 @@
       <select id="profile-switcher" onchange="LumiApp.onSwitchProfile(this.value)" style="padding:8px 14px; border-radius:50px; border:2px solid var(--primary); font-weight:bold; background:var(--surface); color:var(--text); cursor:pointer; font-size:0.95rem;"></select>
       <select id="profile-switcher" onchange="LumiApp.onSwitchProfile(this.value)" style="padding:8px 14px; border-radius:50px; border:2px solid var(--primary); font-weight:bold; background:var(--surface); color:var(--text); cursor:pointer; font-size:0.95rem;"></select>
       <div class="pill-badge">⭐ <span id="top-stars">0</span></div>
+      <button id="quick-dark-btn" class="nav-btn" onclick="LumiApp.toggleQuickDarkMode()">🌙</button>
+      <button class="nav-btn" onclick="LumiApp.openMailbox()">💌 الرسائل <span id="unread-mail-badge" style="background:#EF4444;color:#fff;border-radius:50%;padding:2px 6px;font-size:0.75rem;display:none;">0</span></button>
       <button class="nav-btn" onclick="LumiApp.showView('home-view')">🎮 الألعاب (20)</button>
       <button class="nav-btn" style="background:#0EA5E9;" onclick="LumiApp.openAdventureMap()">🗺️ رحلة اليوم</button>
       <button class="nav-btn story-btn" onclick="LumiApp.openStories()">📖 القصص</button>

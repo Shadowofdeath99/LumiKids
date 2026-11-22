@@ -129,5 +129,22 @@ const LumiAudio = {
     };
     rec.onerror = () => onResult(false, "");
     rec.start();
+  },
+  async playCustomKey(key, fallbackText, lang = 'ar-EG') {
+    try {
+      if (typeof LumiStorage !== 'undefined' && LumiStorage.getRecording) {
+        const rec = await LumiStorage.getRecording(key);
+        if (rec) {
+          const src = typeof rec === 'string' ? rec : (rec.data || URL.createObjectURL(rec));
+          const audio = new Audio(src);
+          await audio.play();
+          return true;
+        }
+      }
+    } catch (e) {}
+    if (fallbackText && typeof this.speak === 'function') {
+      this.speak(fallbackText, lang);
+    }
+    return false;
   }
 };
