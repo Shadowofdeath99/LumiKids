@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LumiKids - عالم الاكتشاف الذكي</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand" onclick="LumiApp.showView('home-view')">
+      🌟 <span>LumiKids</span>
+    </div>
+    <div class="top-controls">
+      <select id="profile-switcher" onchange="LumiApp.onSwitchProfile(this.value)" style="padding:8px 14px; border-radius:50px; border:2px solid var(--primary); font-weight:bold; background:var(--surface); color:var(--text); cursor:pointer; font-size:0.95rem;"></select>
+      <select id="profile-switcher" onchange="LumiApp.onSwitchProfile(this.value)" style="padding:8px 14px; border-radius:50px; border:2px solid var(--primary); font-weight:bold; background:var(--surface); color:var(--text); cursor:pointer; font-size:0.95rem;"></select>
+      <div class="pill-badge">⭐ <span id="top-stars">0</span></div>
+      <button class="nav-btn" onclick="LumiApp.showView('home-view')">🎮 الألعاب (20)</button>
+      <button class="nav-btn" style="background:#0EA5E9;" onclick="LumiApp.openAdventureMap()">🗺️ رحلة اليوم</button>
+      <button class="nav-btn story-btn" onclick="LumiApp.openStories()">📖 القصص</button>
+      <button class="nav-btn" style="background:#EC4899;" onclick="LumiApp.openStickers()">🦄 ملصقاتي</button>
+      <button class="nav-btn reward-btn" onclick="LumiApp.openRewards()">🎁 الهدايا</button>
+      <button class="cheer-secret" title="تشجيع فوري من بابا/ماما" onclick="LumiApp.secretCheer()">👏</button>
+      <button class="nav-btn parent-btn" onclick="LumiParent.openGate()">⚙️ لوحة الأهل</button>
+    </div>
+  </header>
+
+  <main id="home-view" class="view-section active">
+    <div class="overall-bar-wrap">
+      <b>🚀 رحلة التعلم والذكاء:</b>
+      <div class="overall-track"><div id="overall-fill-bar" class="overall-fill" style="width:0%"></div></div>
+      <b id="overall-pct-text">0%</b>
+    </div>
+    <div id="games-grid" class="games-grid"></div>
+  </main>
+
+  <section id="game-view" class="view-section">
+    <div class="game-header">
+      <button class="back-btn" onclick="LumiApp.showView('home-view')">🔙 رجوع للألعاب</button>
+      <button class="speak-btn" onclick="LumiGames.speakCurrentInstruction()">🔊 اسمعي الشرح</button>
+      <h2 id="game-title">اللعبة</h2>
+      <div>
+        <button id="coop-toggle-btn" class="nav-btn" style="display:none; margin-left:8px;" onclick="LumiGames.start(LumiGames.currentGameId, !LumiGames.coOpMode)">👨‍👧 تحدي مع بابا/ماما</button>
+        <span id="game-level-badge" class="pill-badge">المستوى 1 / 10</span>
+      </div>
+    </div>
+    <div id="game-stage" class="game-stage"></div>
+  </section>
+
+  <section id="stories-view" class="view-section">
+    <div class="game-header">
+      <button class="back-btn" onclick="LumiApp.showView('home-view')">🔙 رجوع</button>
+      <h2>📖 مكتبة القصص التفاعلية بصوت العائلة</h2>
+    </div>
+    <div id="stories-container"></div>
+  </section>
+
+  <section id="stickers-view" class="view-section">
+    <div class="game-header">
+      <button class="back-btn" onclick="LumiApp.showView('home-view')">🔙 رجوع</button>
+      <h2>🦄 ألبوم الملصقات السحرية (اضغطي على الملصق لسماع اسمه!)</h2>
+    </div>
+    <div id="stickers-container"></div>
+  </section>
+
+  <section id="rewards-view" class="view-section">
+    <div class="game-header">
+      <button class="back-btn" onclick="LumiApp.showView('home-view')">🔙 رجوع</button>
+      <h2>🎁 متجر الهدايا الحقيقية (استبدلي نجومك!)</h2>
+    </div>
+    <div id="rewards-container"></div>
+  </section>
+
+  <section id="parent-view" class="view-section">
+    <div class="game-header">
+      <button class="back-btn" onclick="LumiApp.showView('home-view')">🔙 خروج للطفل</button>
+      <h2>🛡️ مركز تحكم الوالدين الذكي</h2>
+    </div>
+    <div class="parent-tabs">
+      <button class="p-tab-btn active" data-ptab="dashboard" onclick="LumiParent.switchTab('dashboard')">📊 الذكاء والتحليلات</button>
+      <button class="p-tab-btn" data-ptab="studio" onclick="LumiParent.switchTab('studio')">🎙️ استوديو صوت بابا وماما</button>
+      <button class="p-tab-btn" data-ptab="settings" onclick="LumiParent.switchTab('settings')">🎨 الإعدادات والتحكم</button>
+    </div>
+    <div id="parent-content"></div>
+  </section>
+
+  <div id="sticker-unlock-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="font-size:1.3rem; font-weight:bold; color:#EC4899;">🎉 مبروك! كسبتي ملصق جديد في ألبومك! 🎉</div>
+      <div id="unlocked-sticker-icon" style="font-size:6rem; margin:16px 0; animation:bounce 1s infinite;">🦄</div>
+      <h2 id="unlocked-sticker-title" style="margin-bottom:18px;"></h2>
+      <button class="primary-btn" id="close-sticker-modal">✨ كمّلي اللعب!</button>
+    </div>
+  </div>
+
+  <div id="parent-gate-modal" class="modal-overlay">
+    <div class="modal-card">
+      <h3>🔒 بوابة الوالدين</h3>
+      <p style="margin:12px 0;">للدخول إلى الإعدادات والاستوديو، حل المسألة التالية:</p>
+      <h2 id="gate-question" style="color:var(--primary); margin-bottom:14px;"></h2>
+      <input type="number" id="gate-input" placeholder="اكتب الناتج هنا" style="padding:12px; font-size:1.2rem; text-align:center; border-radius:12px; border:2px solid #CBD5E1; width:160px;">
+      <div style="margin-top:18px; display:flex; gap:10px; justify-content:center;">
+        <button class="primary-btn" style="margin:0;" onclick="LumiParent.verifyGate()">دخول</button>
+        <button class="back-btn" onclick="document.getElementById('parent-gate-modal').style.display='none'">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="sleep-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="font-size:4.5rem;">😴🌙</div>
+      <h2>وقت الراحة يا بطلة!</h2>
+      <p style="margin:14px 0;">عيوننا الحلوة محتاجة ترتاح دلوقتي، وبكرة نكمل مغامراتنا سوا!</p>
+      <button class="nav-btn parent-btn" onclick="document.getElementById('sleep-modal').style.display='none'">تمديد الوقت (للوالدين)</button>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/dictionary.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/games.js"></script>
+  <script src="js/parent.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
