@@ -928,3 +928,38 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }, 150);
 });
+
+LumiApp.renderGamesGrid = function() {
+  const grid = document.getElementById('games-grid');
+  if (!grid || typeof LumiDictionary === 'undefined' || !Array.isArray(LumiDictionary.games)) return;
+
+  const st = (typeof LumiStorage !== 'undefined') ? LumiStorage.getState() : { progress: {}, settings: {} };
+  const prof = (typeof LumiStorage !== 'undefined') ? LumiStorage.getActiveProfile() : { id: 'heaven', name: 'هيفن', age: 10 };
+  const isOlder = (prof && (prof.age >= 8 || prof.id === 'heaven' || (prof.name && prof.name.includes('هيفن'))));
+  const locked = (st.settings && Array.isArray(st.settings.lockedGames)) ? st.settings.lockedGames : [];
+
+  const toddlerIds = new Set(['coloring', 'animals', 'colors', 'shapes', 'alphabet', 'numbers', 'shadows', 'emotions', 'routine', 'piano']);
+  const orderedGames = isOlder
+    ? LumiDictionary.games
+    : [
+        ...LumiDictionary.games.filter(g => toddlerIds.has(g.id)),
+        ...LumiDictionary.games.filter(g => !toddlerIds.has(g.id))
+      ];
+
+  grid.style.display = 'grid';
+  grid.innerHTML = orderedGames.map(g => {
+    const prog = (st.progress && st.progress[g.id]) || { level: 1, completed: 0 };
+    const isLocked = locked.includes(g.id);
+    return `
+      <div class="game-card" style="--card-color:${g.color || '#6366F1'}; ${isLocked ? 'opacity:0.55;' : ''}"
+           onclick="${isLocked ? "alert('هذه اللعبة مقفلة من لوحة الأهل 🔒')" : `LumiGames.start('${g.id}')`}">
+        <span class="g-icon">${g.icon || '🎮'}</span>
+        <div class="g-name-eg">${g.nameEg}</div>
+        <div class="g-name-fr" style="font-size:0.85rem; color:#64748B;">${g.nameFr || ''}</div>
+        <div class="g-lvl-tag">${isLocked ? 'مقفلة 🔒' : `المستوى ${prog.level || 1} ⭐`}</div>
+      </div>
+    `;
+  }).join('');
+};
+
+setTimeout(() => { if (window.LumiApp) LumiApp.renderGamesGrid(); }, 200);
