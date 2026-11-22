@@ -60,6 +60,8 @@ const LumiApp = {
   },
 
   applyVisualSettings() {
+    const st = LumiStorage.getState();
+    document.body.classList.toggle('dark-comfort', !!(st.settings && st.settings.darkMode));
     const state = LumiStorage.getState();
     const s = state.settings;
     document.body.style.filter = `brightness(${s.brightness}%)`;

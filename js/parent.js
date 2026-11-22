@@ -686,6 +686,15 @@ const LumiParent = {
     }
   },
 
+
+  toggleDarkMode(enabled) {
+    const state = LumiStorage.getState();
+    state.settings.darkMode = !!enabled;
+    LumiStorage.saveState(state);
+    LumiApp.applyVisualSettings();
+    LumiAudio.sfxClick();
+  },
+
   updateSetting(key, val) {
     const state = LumiStorage.getState();
     state.settings[key] = val;

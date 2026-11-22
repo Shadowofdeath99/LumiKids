@@ -268,3 +268,43 @@ html, body { max-width: 100vw; overflow-x: hidden; }
   .games-grid { grid-template-columns: repeat(2, 1fr); }
   #maze-box, #sym-canvas { max-width: 100%; height: auto; }
 }
+
+
+/* وضع القراءة الليلية المريح للعين (Dark Comfort Mode) */
+body.dark-comfort {
+  --bg: #0F172A;
+  --surface: #1E293B;
+  --text: #F1F5F9;
+  --shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+}
+body.dark-comfort .topbar,
+body.dark-comfort .game-card,
+body.dark-comfort .game-stage,
+body.dark-comfort .option-card,
+body.dark-comfort .dash-card,
+body.dark-comfort .set-box,
+body.dark-comfort .gate-card,
+body.dark-comfort .modal-box,
+body.dark-comfort .story-scene-box,
+body.dark-comfort .parent-nav {
+  background: var(--surface);
+  color: var(--text);
+  border-color: #334155;
+}
+body.dark-comfort .lock-row {
+  background: #0F172A;
+  border-color: #334155;
+  color: #E2E8F0;
+}
+body.dark-comfort .g-name-fr,
+body.dark-comfort .prompt-sub,
+body.dark-comfort p {
+  color: #CBD5E1 !important;
+}
+body.dark-comfort select,
+body.dark-comfort input[type="text"],
+body.dark-comfort input[type="number"] {
+  background: #0F172A;
+  color: #F8FAFC;
+  border-color: #475569;
+}
