@@ -7,3 +7,8 @@
 - **تعدد الملفات الشخصية (Multi-Profiles):** ملفات مستقلة لكل طفلة بالنجوم، الملصقات، ومؤشرات الذكاء.
 - **خريطة المغامرات اليومية الذكية:** ترشح 4 مهام يومية لتقوية المهارات الأقل درجة.
 - **لوحة تحكم الوالدين:** تحليل القدرات الذهنية الخمس، سجل الجلسات بالوقت والتاريخ، وتصدير تقارير PDF للطباعة.
+
+
+## 📲 التحميل والتشغيل المباشر
+- **📱 تحميل تطبيق الأندرويد (Signed Release APK):** [اضغط هنا لتحميل LumiKids_v2.5_Release.apk مباشرة](https://github.com/Shadowofdeath99/LumiKids/releases/download/v2.5/LumiKids_v2.5_Release.apk)
+- **🌐 التشغيل الفوري عبر المتصفح (Web / PWA):** [افتح LumiKids على GitHub Pages](https://shadowofdeath99.github.io/LumiKids/)

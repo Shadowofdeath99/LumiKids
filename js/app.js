@@ -8,6 +8,10 @@ const LumiApp = {
     this.applyVisualSettings();
     this.updateTopStats();
     this.renderHomeGrid();
+    const apkBtn = document.getElementById('apk-download-btn');
+    if (apkBtn && (window.Capacitor || /wv\)/.test(navigator.userAgent))) {
+      apkBtn.style.display = 'none';
+    }
     this.startEyeCareTimer();
   },
 
