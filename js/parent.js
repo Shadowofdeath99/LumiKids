@@ -382,6 +382,19 @@ const LumiParent = {
       <div class="settings-grid">
 
         <div class="set-box">
+          <h3>💾 النسخ الاحتياطي ونقل البيانات (Backup & Restore)</h3>
+          <p style="font-size:0.9rem; color:#64748B;">احفظ نسخة كاملة من ملفات الأطفال، النجوم، الملصقات، وتسجيلات صوت بابا وماما لنقلها لأي جهاز آخر:</p>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+            <button class="primary-btn" style="background:#0284C7; margin:0;" onclick="LumiParent.downloadBackup()">📤 تصدير نسخة احتياطية</button>
+            <label class="primary-btn" style="background:#059669; margin:0; cursor:pointer; display:inline-flex; align-items:center;">
+              📥 استعادة نسخة احتياطية
+              <input type="file" accept=".json" style="display:none;" onchange="LumiParent.restoreBackupFile(this)">
+            </label>
+          </div>
+        </div>
+
+
+        <div class="set-box">
           <h3>👧 إدارة ملفات الأطفال (Profiles)</h3>
           <p style="font-size:0.9rem; color:#64748B;">لكل طفلة نجومها ومستوياتها وتقرير ذكائها المستقل تماماً:</p>
           <div style="margin:10px 0;">
@@ -508,6 +521,46 @@ const LumiParent = {
   },
 
 
+
+  async downloadBackup() {
+    try {
+      const data = await LumiStorage.exportFullBackup();
+      const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `LumiKids_Backup_${dateStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      LumiAudio.sfxSuccess();
+    } catch (e) {
+      alert('حدث خطأ أثناء إنشاء النسخة الاحتياطية: ' + e.message);
+    }
+  },
+
+  restoreBackupFile(inputEl) {
+    const file = inputEl.files && inputEl.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        await LumiStorage.importFullBackup(parsed);
+        LumiApp.renderProfileSwitcher();
+        LumiApp.applyVisualSettings();
+        LumiApp.updateTopStats();
+        LumiAudio.sfxWin();
+        alert('✅ تم استعادة جميع بيانات الأطفال والأصوات المسجلة بنجاح!');
+        this.renderParentArea();
+      } catch (err) {
+        alert('❌ فشل استعادة الملف: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  },
+
   createNewProfile() {
     const name = document.getElementById('new-prof-name').value;
     const avatar = document.getElementById('new-prof-avatar').value;
@@ -540,6 +593,46 @@ const LumiParent = {
     }
   },
 
+
+
+  async downloadBackup() {
+    try {
+      const data = await LumiStorage.exportFullBackup();
+      const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `LumiKids_Backup_${dateStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      LumiAudio.sfxSuccess();
+    } catch (e) {
+      alert('حدث خطأ أثناء إنشاء النسخة الاحتياطية: ' + e.message);
+    }
+  },
+
+  restoreBackupFile(inputEl) {
+    const file = inputEl.files && inputEl.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        await LumiStorage.importFullBackup(parsed);
+        LumiApp.renderProfileSwitcher();
+        LumiApp.applyVisualSettings();
+        LumiApp.updateTopStats();
+        LumiAudio.sfxWin();
+        alert('✅ تم استعادة جميع بيانات الأطفال والأصوات المسجلة بنجاح!');
+        this.renderParentArea();
+      } catch (err) {
+        alert('❌ فشل استعادة الملف: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  },
 
   createNewProfile() {
     const name = document.getElementById('new-prof-name').value;

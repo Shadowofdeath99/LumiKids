@@ -476,6 +476,58 @@ const LumiStorage = {
   },
 
   // تصفير كل الإحصائيات والتقدم والإعدادات (مع خيار الإبقاء على الأصوات أو مسحها)
+
+  async exportFullBackup() {
+    const lsData = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('LumiKids_')) {
+        lsData[k] = localStorage.getItem(k);
+      }
+    }
+    let audioRecords = [];
+    if (this.db) {
+      audioRecords = await new Promise((resolve) => {
+        try {
+          const tx = this.db.transaction('recordings', 'readonly');
+          const req = tx.objectStore('recordings').getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => resolve([]);
+        } catch (e) { resolve([]); }
+      });
+    }
+    return {
+      app: 'LumiKids',
+      version: '2.5',
+      exportedAt: new Date().toISOString(),
+      localStorage: lsData,
+      recordings: audioRecords
+    };
+  },
+
+  async importFullBackup(backupObj) {
+    if (!backupObj || backupObj.app !== 'LumiKids' || !backupObj.localStorage) {
+      throw new Error('ملف النسخة الاحتياطية غير صالح أو تالف.');
+    }
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('LumiKids_')) localStorage.removeItem(k);
+    }
+    Object.entries(backupObj.localStorage).forEach(([k, v]) => {
+      localStorage.setItem(k, v);
+    });
+    if (this.db && Array.isArray(backupObj.recordings)) {
+      await new Promise((resolve) => {
+        const tx = this.db.transaction('recordings', 'readwrite');
+        const store = tx.objectStore('recordings');
+        store.clear();
+        backupObj.recordings.forEach(item => store.put(item));
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      });
+    }
+  },
+
   async hardReset(deleteVoices = false) {
     const fresh = this.getEmptyState();
     this.saveState(fresh);
