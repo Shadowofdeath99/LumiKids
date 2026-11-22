@@ -70,8 +70,8 @@ const LumiStorage = {
       const def = {
         activeId: 'p1',
         list: [
-          { id: 'p1', name: 'البطلة الأولى', avatar: '👸' },
-          { id: 'p2', name: 'الأميرة الصغيرة', avatar: '🦄' }
+          { id: 'p1', name: 'هيفن', avatar: '👸' },
+          { id: 'p2', name: 'هيلن', avatar: '🦄' }
         ]
       };
       localStorage.setItem('LumiKids_Profiles_Meta', JSON.stringify(def));
@@ -128,8 +128,8 @@ const LumiStorage = {
       const def = {
         activeId: 'p1',
         list: [
-          { id: 'p1', name: 'البطلة الأولى', avatar: '👸' },
-          { id: 'p2', name: 'الأميرة الصغيرة', avatar: '🦄' }
+          { id: 'p1', name: 'هيفن', avatar: '👸' },
+          { id: 'p2', name: 'هيلن', avatar: '🦄' }
         ]
       };
       localStorage.setItem('LumiKids_Profiles_Meta', JSON.stringify(def));
