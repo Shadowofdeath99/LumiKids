@@ -1,3 +1,18 @@
+
+function createSafeProxy(obj) {
+  if (!obj || typeof obj !== 'object') return obj;
+  return new Proxy(obj, {
+    get(target, prop) {
+      if (prop in target) {
+        const val = target[prop];
+        return (val && typeof val === 'object' && !Array.isArray(val)) ? createSafeProxy(val) : val;
+      }
+      if (typeof prop === 'symbol' || prop === 'then' || prop === 'toJSON') return undefined;
+      return createSafeProxy({ level: 1, highScore: 0, plays: 0, score: 0 });
+    }
+  });
+}
+
 const LumiStorage = {
   DB_NAME: 'LumiKids_VoiceDB',
   STORE_NAME: 'recordings',
@@ -42,7 +57,7 @@ const LumiStorage = {
   },
 
   getDefaultState() {
-    return {
+    return createSafeProxy({
       stars: 10,
       cog: {
         memory: { level: 1, highScore: 0, plays: 0 },
@@ -90,18 +105,18 @@ const LumiStorage = {
       const raw = localStorage.getItem(`LumiKids_State_${id}`);
       if (raw) {
         const parsed = JSON.parse(raw);
-        return {
+        return createSafeProxy({
           ...this.getDefaultState(),
           ...parsed,
           progress: { ...this.getDefaultState().progress, ...(parsed.progress || {}) },
           cog: { ...this.getDefaultState().cog, ...(parsed.cog || {}) },
           settings: { ...this.getDefaultState().settings, ...(parsed.settings || {}) }
-        };
+        });
       }
     } catch (e) {}
     const def = this.getDefaultState();
     localStorage.setItem(`LumiKids_State_${id}`, JSON.stringify(def));
-    return def;
+    return createSafeProxy(def);
   },
 
   saveState(state, profileId = null) {
@@ -204,7 +219,7 @@ const LumiStorage = {
     const states = {};
     profiles.forEach(p => { states[p.id] = this.getState(p.id); });
     const voiceNotes = await this.getAllVoiceNotes();
-    return {
+    return createSafeProxy({
       version: '2.5',
       exportedAt: new Date().toISOString(),
       profiles,
