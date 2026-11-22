@@ -688,6 +688,123 @@ const LumiParent = {
 
 
 
+
+  getAllStudioTrackKeys() {
+    const keys = ['bedtime_lullaby', 'encourage_win', 'encourage_try'];
+    if (typeof LumiDictionary !== 'undefined') {
+      (LumiDictionary.voicePrompts || []).forEach(v => { if (v.id && !keys.includes(v.id)) keys.push(v.id); });
+      (LumiDictionary.games || []).forEach(g => keys.push(`game_${g.id}`));
+      (LumiDictionary.stories || []).forEach(s => keys.push(`story_${s.id}`));
+    }
+    return keys;
+  },
+
+  async updateStudioCompletionMeter() {
+    const bar = document.getElementById('studio-progress-fill');
+    const txt = document.getElementById('studio-progress-text');
+    if (!bar || !txt || !LumiStorage.getRecording) return;
+    const keys = this.getAllStudioTrackKeys();
+    let done = 0;
+    for (const k of keys) {
+      try {
+        const rec = await LumiStorage.getRecording(k);
+        if (rec) done++;
+      } catch (e) {}
+    }
+    const total = keys.length || 1;
+    const pct = Math.round((done / total) * 100);
+    bar.style.width = pct + '%';
+    txt.innerText = `🎙️ التسجيلات المكتملة بصوت العائلة: ${done} من ${total} (${pct}%)`;
+  },
+
+  async recordCustomStudioKey(key, btnEl) {
+    if (this._activeKeyRec && this._activeKeyRec.state === 'recording') {
+      this._activeKeyRec.stop();
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const chunks = [];
+      const rec = new MediaRecorder(stream);
+      this._activeKeyRec = rec;
+      const origLabel = btnEl.innerText;
+      btnEl.innerText = '⏹️ إيقاف وحفظ';
+      btnEl.style.background = '#EF4444';
+
+      rec.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+      rec.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          if (LumiStorage.saveRecording) {
+            await LumiStorage.saveRecording(key, reader.result);
+          } else if (LumiStorage.db) {
+            const tx = LumiStorage.db.transaction('recordings', 'readwrite');
+            tx.objectStore('recordings').put({ id: key, data: reader.result });
+          }
+          btnEl.innerText = '✅ تم التسجيل (إعادة)';
+          btnEl.style.background = '#10B981';
+          LumiAudio.sfxSuccess();
+          this.updateStudioCompletionMeter();
+        };
+        reader.readAsDataURL(blob);
+        stream.getTracks().forEach(t => t.stop());
+      };
+      rec.start();
+    } catch (e) {
+      alert('يرجى السماح بصلاحية الميكروفون للتسجيل الصوتي.');
+    }
+  },
+
+  renderGamesAndStoriesStudioBlock() {
+    const games = (typeof LumiDictionary !== 'undefined' && LumiDictionary.games) ? LumiDictionary.games : [];
+    const stories = (typeof LumiDictionary !== 'undefined' && LumiDictionary.stories) ? LumiDictionary.stories : [];
+    setTimeout(() => this.updateStudioCompletionMeter(), 120);
+
+    return `
+      <div style="background:linear-gradient(135deg,#EEF2FF,#FDF2F8); border:2px solid #C7D2FE; border-radius:20px; padding:16px; margin-bottom:18px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+          <span id="studio-progress-text" style="font-weight:bold; color:#3730A3;">🎙️ جاري حساب التسجيلات المكتملة...</span>
+          <span style="font-size:0.85rem; color:#6366F1;">تُشغّل تلقائياً بصوتكم عند فتح اللعبة أو القصة</span>
+        </div>
+        <div style="width:100%; height:12px; background:#E0E7FF; border-radius:50px; overflow:hidden;">
+          <div id="studio-progress-fill" style="width:0%; height:100%; background:linear-gradient(90deg,#6366F1,#EC4899); transition:width 0.4s ease;"></div>
+        </div>
+      </div>
+
+      <div class="set-box" style="margin-top:16px;">
+        <h3>🎮 تسجيل صوت شرح كل لعبة (${games.length} لعبة)</h3>
+        <div style="display:grid; gap:10px; max-height:320px; overflow-y:auto; padding-left:4px;">
+          ${games.map(g => `
+            <div class="lock-row" style="justify-content:space-between; flex-wrap:wrap; gap:8px;">
+              <span>${g.icon || '🎲'} <b>${g.nameEg || g.name}</b></span>
+              <div style="display:flex; gap:6px;">
+                <button class="play-btn" style="background:#6366F1; padding:6px 12px; font-size:0.85rem;" onclick="LumiParent.recordCustomStudioKey('game_${g.id}', this)">🎙️ سجّل شرح اللعبة</button>
+                <button class="play-btn" style="background:#0EA5E9; padding:6px 10px; font-size:0.85rem;" onclick="LumiAudio.playCustomKey('game_${g.id}', '${(g.nameEg || '').replace(/'/g, '')}')">▶️</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      ${stories.length ? `
+      <div class="set-box" style="margin-top:16px;">
+        <h3>📖 تسجيل رواية القصص بصوتكم (${stories.length} قصص)</h3>
+        <div style="display:grid; gap:10px;">
+          ${stories.map(s => `
+            <div class="lock-row" style="justify-content:space-between; flex-wrap:wrap; gap:8px;">
+              <span>📚 <b>${s.titleEg || s.title}</b></span>
+              <div style="display:flex; gap:6px;">
+                <button class="play-btn" style="background:#EC4899; padding:6px 12px; font-size:0.85rem;" onclick="LumiParent.recordCustomStudioKey('story_${s.id}', this)">🎙️ سجّل القصة</button>
+                <button class="play-btn" style="background:#0EA5E9; padding:6px 10px; font-size:0.85rem;" onclick="LumiAudio.playCustomKey('story_${s.id}', '${(s.titleEg || '').replace(/'/g, '')}')">▶️</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>` : ''}
+    `;
+  },
+
   updateBedtimeSetting(key, val) {
     const state = LumiStorage.getState();
     state.settings[key] = val;
