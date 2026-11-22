@@ -382,6 +382,17 @@ const LumiParent = {
       <div class="settings-grid">
 
         <div class="set-box">
+          <h3>🏆 شهادة تقدير وتفوق مصورة</h3>
+          <p style="font-size:0.9rem; color:#64748B;">أصدر شهادة تقدير رسمية مصورة باسم الطفلة النشطة وعدد نجومها وإنجازاتها لمشاركتها مع العائلة أو طباعتها:</p>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+            <button class="primary-btn" style="background:linear-gradient(135deg,#F59E0B,#D97706); margin:0;" onclick="LumiParent.generateCertificate(true)">🖼️ إصدار وحفظ الشهادة (PNG)</button>
+            <button class="primary-btn" style="background:#7C3AED; margin:0;" onclick="LumiParent.generateCertificate(false)">👁️ معاينة الشهادة</button>
+          </div>
+          <div id="cert-preview-wrap" style="margin-top:14px; text-align:center;"></div>
+        </div>
+
+
+        <div class="set-box">
           <h3>💾 النسخ الاحتياطي ونقل البيانات (Backup & Restore)</h3>
           <p style="font-size:0.9rem; color:#64748B;">احفظ نسخة كاملة من ملفات الأطفال، النجوم، الملصقات، وتسجيلات صوت بابا وماما لنقلها لأي جهاز آخر:</p>
           <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
@@ -522,6 +533,146 @@ const LumiParent = {
 
 
 
+
+  generateCertificate(autoDownload = true) {
+    const prof = LumiStorage.getActiveProfile();
+    const state = LumiStorage.getState();
+    const stars = state.stars || 0;
+    const stickersCount = (state.stickers || []).length;
+    const skills = state.skills || {};
+    const skillNames = {
+      memory: 'الذاكرة البصرية والسمعية',
+      logic: 'التفكير المنطقي والذكي',
+      coding: 'البرمجة وحل المشكلات',
+      language: 'اللغات والمفردات',
+      creativity: 'الإبداع والخيال الفني'
+    };
+    let topSkillKey = 'logic';
+    let topVal = -1;
+    Object.entries(skills).forEach(([k, v]) => {
+      if (v > topVal) { topVal = v; topSkillKey = k; }
+    });
+    const topSkillLabel = skillNames[topSkillKey] || 'الاستكشاف والتعلم الذكي';
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200;
+    canvas.height = 850;
+    const ctx = canvas.getContext('2d');
+
+    // خلفية كريمية دافئة متدرجة
+    const bgGrad = ctx.createLinearGradient(0, 0, 1200, 850);
+    bgGrad.addColorStop(0, '#FFFBEB');
+    bgGrad.addColorStop(0.5, '#FFF9F2');
+    bgGrad.addColorStop(1, '#FEF3C7');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 1200, 850);
+
+    // إطار ذهبي مزدوج مزخرف
+    ctx.strokeStyle = '#D97706';
+    ctx.lineWidth = 14;
+    ctx.strokeRect(32, 32, 1136, 786);
+
+    ctx.strokeStyle = '#F59E0B';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(54, 54, 1092, 742);
+
+    // زوايا زخرفية
+    const corners = [[54, 54], [1146, 54], [54, 796], [1146, 796]];
+    ctx.fillStyle = '#FF6B6B';
+    corners.forEach(([cx, cy]) => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, 16, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.textAlign = 'center';
+    ctx.direction = 'rtl';
+
+    // الشعار العلوي
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillStyle = '#FF6B6B';
+    ctx.fillText('🌟 أكاديمية LumiKids للتعلم الذكي 🌟', 600, 125);
+
+    // العنوان الرئيسي
+    ctx.font = 'bold 62px sans-serif';
+    ctx.fillStyle = '#B45309';
+    ctx.fillText('شـهـادة تـقـديـر وتـفـوق', 600, 210);
+
+    // خط فاصل ذهبي
+    ctx.strokeStyle = '#F59E0B';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(350, 238);
+    ctx.lineTo(850, 238);
+    ctx.stroke();
+
+    // نص الإهداء
+    ctx.font = '32px sans-serif';
+    ctx.fillStyle = '#334155';
+    ctx.fillText('تُمنح هذه الشهادة بكل فخر واعتزاز إلى البطلة المتميزة:', 600, 305);
+
+    // اسم الطفلة والأفاتار
+    ctx.font = 'bold 68px sans-serif';
+    ctx.fillStyle = '#1E1B4B';
+    ctx.fillText(`${prof.avatar || '👸'} ${prof.name}`, 600, 395);
+
+    // شريط الإنجازات
+    ctx.fillStyle = '#FFFFFF';
+    ctx.strokeStyle = '#FDE68A';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect(180, 445, 840, 150, 26);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = 'bold 30px sans-serif';
+    ctx.fillStyle = '#0F172A';
+    ctx.fillText(`⭐ الرصيد المكتسب: ${stars} نجمة   |   🏅 الأوسمة: ${stickersCount} ملصق`, 600, 505);
+
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillStyle = '#059669';
+    ctx.fillText(`🧠 مهارة التميز الأبرز: ${topSkillLabel}`, 600, 562);
+
+    // التوقيع والتاريخ
+    const dateStr = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+    ctx.font = '26px sans-serif';
+    ctx.fillStyle = '#475569';
+    ctx.fillText(`تاريخ الإصدار: ${dateStr}`, 860, 705);
+    ctx.fillText('توقيع الأسرة: بابا وماما ❤️', 340, 705);
+
+    // ختم النجمة الذهبي في المنتصف
+    ctx.fillStyle = '#F59E0B';
+    ctx.beginPath();
+    ctx.arc(600, 700, 48, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = '44px sans-serif';
+    ctx.fillText('🏆', 600, 715);
+
+    const dataUrl = canvas.toDataURL('image/png');
+    const fileName = `LumiKids_Certificate_${prof.name}_${new Date().toISOString().slice(0, 10)}.png`;
+
+    const wrap = document.getElementById('cert-preview-wrap');
+    if (wrap) {
+      wrap.innerHTML = `<img src="${dataUrl}" style="max-width:100%; border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.15); border:3px solid #F59E0B;" alt="شهادة التقدير">`;
+    }
+
+    if (autoDownload) {
+      if (window.LumiAndroid && typeof window.LumiAndroid.saveImageToDownloads === 'function') {
+        const savedPath = window.LumiAndroid.saveImageToDownloads(fileName, dataUrl);
+        LumiAudio.sfxWin();
+        alert(`🎉 تم حفظ شهادة التقدير في معرض الصور / التنزيلات:\n${savedPath}`);
+        return;
+      }
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      LumiAudio.sfxWin();
+    }
+  },
+
   async downloadBackup() {
     try {
       const data = await LumiStorage.exportFullBackup();
@@ -604,6 +755,146 @@ const LumiParent = {
   },
 
 
+
+
+  generateCertificate(autoDownload = true) {
+    const prof = LumiStorage.getActiveProfile();
+    const state = LumiStorage.getState();
+    const stars = state.stars || 0;
+    const stickersCount = (state.stickers || []).length;
+    const skills = state.skills || {};
+    const skillNames = {
+      memory: 'الذاكرة البصرية والسمعية',
+      logic: 'التفكير المنطقي والذكي',
+      coding: 'البرمجة وحل المشكلات',
+      language: 'اللغات والمفردات',
+      creativity: 'الإبداع والخيال الفني'
+    };
+    let topSkillKey = 'logic';
+    let topVal = -1;
+    Object.entries(skills).forEach(([k, v]) => {
+      if (v > topVal) { topVal = v; topSkillKey = k; }
+    });
+    const topSkillLabel = skillNames[topSkillKey] || 'الاستكشاف والتعلم الذكي';
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200;
+    canvas.height = 850;
+    const ctx = canvas.getContext('2d');
+
+    // خلفية كريمية دافئة متدرجة
+    const bgGrad = ctx.createLinearGradient(0, 0, 1200, 850);
+    bgGrad.addColorStop(0, '#FFFBEB');
+    bgGrad.addColorStop(0.5, '#FFF9F2');
+    bgGrad.addColorStop(1, '#FEF3C7');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 1200, 850);
+
+    // إطار ذهبي مزدوج مزخرف
+    ctx.strokeStyle = '#D97706';
+    ctx.lineWidth = 14;
+    ctx.strokeRect(32, 32, 1136, 786);
+
+    ctx.strokeStyle = '#F59E0B';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(54, 54, 1092, 742);
+
+    // زوايا زخرفية
+    const corners = [[54, 54], [1146, 54], [54, 796], [1146, 796]];
+    ctx.fillStyle = '#FF6B6B';
+    corners.forEach(([cx, cy]) => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, 16, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.textAlign = 'center';
+    ctx.direction = 'rtl';
+
+    // الشعار العلوي
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillStyle = '#FF6B6B';
+    ctx.fillText('🌟 أكاديمية LumiKids للتعلم الذكي 🌟', 600, 125);
+
+    // العنوان الرئيسي
+    ctx.font = 'bold 62px sans-serif';
+    ctx.fillStyle = '#B45309';
+    ctx.fillText('شـهـادة تـقـديـر وتـفـوق', 600, 210);
+
+    // خط فاصل ذهبي
+    ctx.strokeStyle = '#F59E0B';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(350, 238);
+    ctx.lineTo(850, 238);
+    ctx.stroke();
+
+    // نص الإهداء
+    ctx.font = '32px sans-serif';
+    ctx.fillStyle = '#334155';
+    ctx.fillText('تُمنح هذه الشهادة بكل فخر واعتزاز إلى البطلة المتميزة:', 600, 305);
+
+    // اسم الطفلة والأفاتار
+    ctx.font = 'bold 68px sans-serif';
+    ctx.fillStyle = '#1E1B4B';
+    ctx.fillText(`${prof.avatar || '👸'} ${prof.name}`, 600, 395);
+
+    // شريط الإنجازات
+    ctx.fillStyle = '#FFFFFF';
+    ctx.strokeStyle = '#FDE68A';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect(180, 445, 840, 150, 26);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = 'bold 30px sans-serif';
+    ctx.fillStyle = '#0F172A';
+    ctx.fillText(`⭐ الرصيد المكتسب: ${stars} نجمة   |   🏅 الأوسمة: ${stickersCount} ملصق`, 600, 505);
+
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillStyle = '#059669';
+    ctx.fillText(`🧠 مهارة التميز الأبرز: ${topSkillLabel}`, 600, 562);
+
+    // التوقيع والتاريخ
+    const dateStr = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+    ctx.font = '26px sans-serif';
+    ctx.fillStyle = '#475569';
+    ctx.fillText(`تاريخ الإصدار: ${dateStr}`, 860, 705);
+    ctx.fillText('توقيع الأسرة: بابا وماما ❤️', 340, 705);
+
+    // ختم النجمة الذهبي في المنتصف
+    ctx.fillStyle = '#F59E0B';
+    ctx.beginPath();
+    ctx.arc(600, 700, 48, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = '44px sans-serif';
+    ctx.fillText('🏆', 600, 715);
+
+    const dataUrl = canvas.toDataURL('image/png');
+    const fileName = `LumiKids_Certificate_${prof.name}_${new Date().toISOString().slice(0, 10)}.png`;
+
+    const wrap = document.getElementById('cert-preview-wrap');
+    if (wrap) {
+      wrap.innerHTML = `<img src="${dataUrl}" style="max-width:100%; border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.15); border:3px solid #F59E0B;" alt="شهادة التقدير">`;
+    }
+
+    if (autoDownload) {
+      if (window.LumiAndroid && typeof window.LumiAndroid.saveImageToDownloads === 'function') {
+        const savedPath = window.LumiAndroid.saveImageToDownloads(fileName, dataUrl);
+        LumiAudio.sfxWin();
+        alert(`🎉 تم حفظ شهادة التقدير في معرض الصور / التنزيلات:\n${savedPath}`);
+        return;
+      }
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      LumiAudio.sfxWin();
+    }
+  },
 
   async downloadBackup() {
     try {
@@ -842,6 +1133,146 @@ const LumiParent = {
     if (!state.progress[gameId]) state.progress[gameId] = { level: lvl, completed: 0, correct: 0, wrong: 0, totalTime: 0 };
     else state.progress[gameId].level = lvl;
     LumiStorage.saveState(state);
+  },
+
+
+  generateCertificate(autoDownload = true) {
+    const prof = LumiStorage.getActiveProfile();
+    const state = LumiStorage.getState();
+    const stars = state.stars || 0;
+    const stickersCount = (state.stickers || []).length;
+    const skills = state.skills || {};
+    const skillNames = {
+      memory: 'الذاكرة البصرية والسمعية',
+      logic: 'التفكير المنطقي والذكي',
+      coding: 'البرمجة وحل المشكلات',
+      language: 'اللغات والمفردات',
+      creativity: 'الإبداع والخيال الفني'
+    };
+    let topSkillKey = 'logic';
+    let topVal = -1;
+    Object.entries(skills).forEach(([k, v]) => {
+      if (v > topVal) { topVal = v; topSkillKey = k; }
+    });
+    const topSkillLabel = skillNames[topSkillKey] || 'الاستكشاف والتعلم الذكي';
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200;
+    canvas.height = 850;
+    const ctx = canvas.getContext('2d');
+
+    // خلفية كريمية دافئة متدرجة
+    const bgGrad = ctx.createLinearGradient(0, 0, 1200, 850);
+    bgGrad.addColorStop(0, '#FFFBEB');
+    bgGrad.addColorStop(0.5, '#FFF9F2');
+    bgGrad.addColorStop(1, '#FEF3C7');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 1200, 850);
+
+    // إطار ذهبي مزدوج مزخرف
+    ctx.strokeStyle = '#D97706';
+    ctx.lineWidth = 14;
+    ctx.strokeRect(32, 32, 1136, 786);
+
+    ctx.strokeStyle = '#F59E0B';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(54, 54, 1092, 742);
+
+    // زوايا زخرفية
+    const corners = [[54, 54], [1146, 54], [54, 796], [1146, 796]];
+    ctx.fillStyle = '#FF6B6B';
+    corners.forEach(([cx, cy]) => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, 16, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.textAlign = 'center';
+    ctx.direction = 'rtl';
+
+    // الشعار العلوي
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillStyle = '#FF6B6B';
+    ctx.fillText('🌟 أكاديمية LumiKids للتعلم الذكي 🌟', 600, 125);
+
+    // العنوان الرئيسي
+    ctx.font = 'bold 62px sans-serif';
+    ctx.fillStyle = '#B45309';
+    ctx.fillText('شـهـادة تـقـديـر وتـفـوق', 600, 210);
+
+    // خط فاصل ذهبي
+    ctx.strokeStyle = '#F59E0B';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(350, 238);
+    ctx.lineTo(850, 238);
+    ctx.stroke();
+
+    // نص الإهداء
+    ctx.font = '32px sans-serif';
+    ctx.fillStyle = '#334155';
+    ctx.fillText('تُمنح هذه الشهادة بكل فخر واعتزاز إلى البطلة المتميزة:', 600, 305);
+
+    // اسم الطفلة والأفاتار
+    ctx.font = 'bold 68px sans-serif';
+    ctx.fillStyle = '#1E1B4B';
+    ctx.fillText(`${prof.avatar || '👸'} ${prof.name}`, 600, 395);
+
+    // شريط الإنجازات
+    ctx.fillStyle = '#FFFFFF';
+    ctx.strokeStyle = '#FDE68A';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect(180, 445, 840, 150, 26);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = 'bold 30px sans-serif';
+    ctx.fillStyle = '#0F172A';
+    ctx.fillText(`⭐ الرصيد المكتسب: ${stars} نجمة   |   🏅 الأوسمة: ${stickersCount} ملصق`, 600, 505);
+
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillStyle = '#059669';
+    ctx.fillText(`🧠 مهارة التميز الأبرز: ${topSkillLabel}`, 600, 562);
+
+    // التوقيع والتاريخ
+    const dateStr = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+    ctx.font = '26px sans-serif';
+    ctx.fillStyle = '#475569';
+    ctx.fillText(`تاريخ الإصدار: ${dateStr}`, 860, 705);
+    ctx.fillText('توقيع الأسرة: بابا وماما ❤️', 340, 705);
+
+    // ختم النجمة الذهبي في المنتصف
+    ctx.fillStyle = '#F59E0B';
+    ctx.beginPath();
+    ctx.arc(600, 700, 48, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = '44px sans-serif';
+    ctx.fillText('🏆', 600, 715);
+
+    const dataUrl = canvas.toDataURL('image/png');
+    const fileName = `LumiKids_Certificate_${prof.name}_${new Date().toISOString().slice(0, 10)}.png`;
+
+    const wrap = document.getElementById('cert-preview-wrap');
+    if (wrap) {
+      wrap.innerHTML = `<img src="${dataUrl}" style="max-width:100%; border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.15); border:3px solid #F59E0B;" alt="شهادة التقدير">`;
+    }
+
+    if (autoDownload) {
+      if (window.LumiAndroid && typeof window.LumiAndroid.saveImageToDownloads === 'function') {
+        const savedPath = window.LumiAndroid.saveImageToDownloads(fileName, dataUrl);
+        LumiAudio.sfxWin();
+        alert(`🎉 تم حفظ شهادة التقدير في معرض الصور / التنزيلات:\n${savedPath}`);
+        return;
+      }
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      LumiAudio.sfxWin();
+    }
   },
 
   async downloadBackup() {
