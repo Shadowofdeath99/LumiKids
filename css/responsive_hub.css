@@ -1,0 +1,164 @@
+/* تنسيق متناغم للموبايل (6-7 بوصة) والتابلت (10 بوصة) */
+* { box-sizing: border-box; }
+html, body { max-width: 100vw; overflow-x: hidden; }
+
+header.topbar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  padding: 10px 14px !important;
+  flex-wrap: nowrap !important;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+header.topbar .brand {
+  font-size: clamp(1.1rem, 3.2vw, 1.45rem) !important;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+header.topbar .top-controls {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: nowrap !important;
+}
+
+/* إخفاء تكدس الأزرار الكثيرة في الشريط العلوي ونقلها لدرج منظم */
+header.topbar .top-controls .nav-btn,
+header.topbar .top-controls .cheer-secret,
+header.topbar .top-controls #apk-download-btn {
+  display: none !important;
+}
+
+header.topbar .top-controls #lumi-menu-toggle,
+header.topbar .top-controls #quick-dark-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 8px 14px !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+  font-size: 0.95rem !important;
+  white-space: nowrap;
+}
+
+/* درج القائمة المنظم للموبايل والتابلت */
+#lumi-nav-drawer {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 16px;
+}
+#lumi-nav-drawer.open { display: flex; }
+#lumi-nav-drawer .drawer-card {
+  width: 100%;
+  max-width: 560px;
+  background: var(--card-bg, #FFFFFF);
+  color: var(--text-color, #1E293B);
+  border-radius: 24px;
+  padding: 20px;
+  margin-top: 48px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.28);
+  max-height: 82vh;
+  overflow-y: auto;
+}
+body.dark-mode #lumi-nav-drawer .drawer-card {
+  background: #1E293B;
+  color: #F8FAFC;
+}
+.drawer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+@media (min-width: 720px) {
+  .drawer-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.drawer-item-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 10px;
+  border-radius: 16px;
+  border: none;
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+  min-height: 76px;
+  text-align: center;
+}
+
+/* شريط تبويب الفئات الذكي أعلى الألعاب */
+#lumi-category-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 4px 12px 4px;
+  margin-bottom: 12px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+#lumi-category-bar::-webkit-scrollbar { display: none; }
+.lumi-cat-pill {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(99, 102, 241, 0.25);
+  background: rgba(99, 102, 241, 0.08);
+  color: inherit;
+  font-weight: 800;
+  font-size: clamp(0.88rem, 2.5vw, 1rem);
+  cursor: pointer;
+  min-height: 44px;
+  transition: all 0.2s;
+}
+.lumi-cat-pill.active {
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+/* شبكة الألعاب المتجاوبة للموبايل (2 عمود) والتابلت (3-4 أعمدة) */
+#games-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 12px !important;
+  padding: 4px !important;
+}
+@media (min-width: 700px) {
+  #games-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 16px !important;
+  }
+}
+@media (min-width: 1024px) {
+  #games-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 18px !important;
+  }
+}
+#games-grid .game-card {
+  min-height: 132px !important;
+  padding: 14px 10px !important;
+  border-radius: 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
