@@ -162,6 +162,17 @@ const LumiStorage = {
     this.saveState(st, profileId);
   },
 
+  logSession(sessionObj, profileId = null) {
+    try {
+      const id = profileId || this.getActiveProfileId();
+      const s = this.getState(id);
+      s.sessions = Array.isArray(s.sessions) ? s.sessions : [];
+      s.sessions.unshift(sessionObj);
+      if (s.sessions.length > 100) s.sessions = s.sessions.slice(0, 100);
+      this.saveState(s, id);
+    } catch (e) {}
+  },
+
   addStars(count, gameName = 'نشاط تعليمي', level = 1) {
     const st = this.getState();
     st.stars = (st.stars || 0) + count;

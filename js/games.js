@@ -7,7 +7,14 @@ const LumiGames = {
   activeSession: null,
 
   start(gameId, coOp = false) {
-    this.endCurrentSession();
+    if (window.LumiApp && typeof LumiApp.showView === 'function') {
+      LumiApp.showView('game-view');
+    } else {
+      document.querySelectorAll('.view-section, section[id$="-view"]').forEach(s => s.style.display = 'none');
+      const gv = document.getElementById('game-view');
+      if (gv) { gv.classList.add('active'); gv.style.display = 'block'; }
+    }
+    try { this.endCurrentSession(); } catch (e) {}
     this.currentGameId = gameId;
     this.coOpMode = coOp;
     this.consecutiveErrors = 0;
