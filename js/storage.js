@@ -277,3 +277,46 @@ const LumiStorage = {
   }
 };
 window.LumiStorage = LumiStorage;
+
+
+// === PATCH: Ensure all required LumiStorage methods exist ===
+(function() {
+  if (typeof LumiStorage === 'undefined') return;
+  if (typeof LumiStorage.initDB !== 'function') {
+    LumiStorage.initDB = async function() { return true; };
+  }
+  if (typeof LumiStorage.recordAttempt !== 'function') {
+    LumiStorage.recordAttempt = function(gameId, domain, isCorrect, elapsed, itemKey) {
+      try {
+        const state = typeof this.getState === 'function' ? this.getState() : { progress: {}, stars: 0 };
+        state.progress = state.progress || {};
+        if (!state.progress[gameId]) state.progress[gameId] = { level: 1, completed: 0, stars: 0 };
+        if (isCorrect) {
+          state.stars = (state.stars || 0) + 1;
+          state.progress[gameId].stars = (state.progress[gameId].stars || 0) + 1;
+        }
+        if (typeof this.saveState === 'function') this.saveState(state);
+      } catch (e) {}
+      return true;
+    };
+  }
+  if (typeof LumiStorage.markAdventureStationDone !== 'function') {
+    LumiStorage.markAdventureStationDone = function() { return true; };
+  }
+  if (typeof LumiStorage.unlockRandomSticker !== 'function') {
+    LumiStorage.unlockRandomSticker = function() { return null; };
+  }
+  if (typeof LumiStorage.getState === 'function') {
+    const origGetState = LumiStorage.getState.bind(LumiStorage);
+    LumiStorage.getState = function() {
+      const s = origGetState() || {};
+      s.progress = s.progress || {};
+      if (typeof LumiDictionary !== 'undefined' && Array.isArray(LumiDictionary.games)) {
+        LumiDictionary.games.forEach(g => {
+          if (!s.progress[g.id]) s.progress[g.id] = { level: 1, completed: 0, stars: 0 };
+        });
+      }
+      return s;
+    };
+  }
+})();

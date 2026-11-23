@@ -108,11 +108,11 @@
 
   // ربط عداد المكافأة مع الإجابات الصحيحة في ألعاب المنهج والموسوعة
   const origHandle = LumiGames.handleAnswer ? LumiGames.handleAnswer.bind(LumiGames) : null;
-  LumiGames.handleAnswer = function(isCorrect) {
+  LumiGames.handleAnswer = function(isCorrect, ...restArgs) {
     if (isCorrect && CURRICULUM_IDS.has(this.currentGameId)) {
       recordCurriculumCorrect();
     }
-    if (origHandle) return origHandle(isCorrect);
+    if (origHandle) return origHandle(isCorrect, ...restArgs);
   };
 
   // ربط شريط الخزنة أعلى شاشة اللعب لأي نشاط دراسي
