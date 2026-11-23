@@ -74,11 +74,41 @@
     };
   }
 
-  // 2. مدير طابور الصوت الذكي: يمنع قفل أو قطع الصوت عند الضغط على زر صوتي آخر
-  const audioQueue = [];
-  let isAudioPlaying = false;
-  let lastQueuedText = '';
-  let lastQueuedTime = 0;
+  // 2. القطع التنازلي الناعم (Smooth Fade-Out Preemption) عند الضغط على زر صوتي جديد
+  let activeHtmlAudio = null;
+  let speechGeneration = 0;
+
+  function fadeOutAndStopCurrent() {
+    return new Promise(resolve => {
+      // إيقاف أي نطق آلي جاري بأمان بدون تعليق أندرويد
+      try {
+        if ('speechSynthesis' in window && (window.speechSynthesis.speaking || window.speechSynthesis.pending)) {
+          window.speechSynthesis.cancel();
+        }
+      } catch (e) {}
+
+      // خفض تدريجي ناعم للصوت المسجل خلال 120ms
+      if (activeHtmlAudio) {
+        const audio = activeHtmlAudio;
+        activeHtmlAudio = null;
+        let step = 0;
+        const steps = 4;
+        const startVol = audio.volume || 1;
+        const iv = setInterval(() => {
+          step++;
+          audio.volume = Math.max(0, startVol * (1 - step / steps));
+          if (step >= steps) {
+            clearInterval(iv);
+            try { audio.pause(); audio.currentTime = 0; } catch (e) {}
+            resolve();
+          }
+        }, 30);
+      } else {
+        // مهلة 65ms ليفرغ محرك TTS في أندرويد البافر قبل الجملة الجديدة
+        setTimeout(resolve, 65);
+      }
+    });
+  }
 
   function detectLangSafe(text) {
     if (/[\u0600-\u06FF]/.test(text)) return 'ar-EG';
@@ -130,85 +160,68 @@
     } catch (e) { return null; }
   }
 
-  async function processAudioQueue() {
-    if (isAudioPlaying || audioQueue.length === 0) return;
-    isAudioPlaying = true;
-    const item = audioQueue.shift();
-
-    try {
-      // الأولوية 1: تسجيل بابا وماما في القاموس الشامل
-      const parentBlob = await lookupParentCustomAudio(item.text);
-      if (parentBlob) {
-        await new Promise(resolve => {
-          const url = URL.createObjectURL(parentBlob);
-          const a = new Audio(url);
-          a.onended = () => { URL.revokeObjectURL(url); resolve(); };
-          a.onerror = () => { URL.revokeObjectURL(url); resolve(); };
-          a.play().catch(resolve);
-        });
-        isAudioPlaying = false;
-        processAudioQueue();
-        return;
-      }
-
-      // الأولوية 2: الصوت الافتراضي الأنثوي الهادئ بدون قطع مفاجئ
-      const cleaned = (item.text || '')
-        .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, ' ')
-        .replace(/[_]{2,}/g, ' ... ')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-      if (cleaned && 'speechSynthesis' in window) {
-        if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-        await new Promise(resolve => {
-          const u = new SpeechSynthesisUtterance(cleaned);
-          const lang = item.lang || detectLangSafe(cleaned);
-          u.lang = lang;
-          const v = pickFemaleVoiceSafe(lang);
-          if (v) u.voice = v;
-          u.pitch = 1.12;
-          u.rate = 0.92;
-          let done = false;
-          const finish = () => { if (!done) { done = true; resolve(); } };
-          u.onend = finish;
-          u.onerror = finish;
-          setTimeout(finish, Math.min(12000, Math.max(2500, cleaned.length * 110)));
-          window.speechSynthesis.speak(u);
-        });
-      }
-    } catch (e) {}
-
-    isAudioPlaying = false;
-    processAudioQueue();
-  }
-
-  function enqueueSpeech(text, lang) {
+  async function playInterruptible(text, lang) {
     const cleanSig = (text || '').trim();
     if (!cleanSig) return;
-    const now = Date.now();
-    // منع تكرار نفس الجملة مرتين متتاليتين خلال ثانيتين
-    if (cleanSig === lastQueuedText && (now - lastQueuedTime) < 2000) return;
-    lastQueuedText = cleanSig;
-    lastQueuedTime = now;
 
-    // الاحتفاظ بآخر طلبين فقط في الطابور لمنع التراكم الطويل
-    if (audioQueue.length >= 2) audioQueue.shift();
-    audioQueue.push({ text: cleanSig, lang });
-    processAudioQueue();
+    // إلغاء أي صوت سابق فوراً بخفض تنازلي ناعم وبدء الصوت الجديد
+    const myGen = ++speechGeneration;
+    await fadeOutAndStopCurrent();
+    if (myGen !== speechGeneration) return;
+
+    // 1. الأولوية لصوت بابا وماما المسجل
+    const parentBlob = await lookupParentCustomAudio(cleanSig);
+    if (myGen !== speechGeneration) return;
+
+    if (parentBlob) {
+      const url = URL.createObjectURL(parentBlob);
+      const audio = new Audio(url);
+      audio.volume = 1.0;
+      activeHtmlAudio = audio;
+      audio.onended = () => {
+        if (activeHtmlAudio === audio) activeHtmlAudio = null;
+        URL.revokeObjectURL(url);
+      };
+      audio.onerror = () => {
+        if (activeHtmlAudio === audio) activeHtmlAudio = null;
+        URL.revokeObjectURL(url);
+      };
+      audio.play().catch(() => {});
+      return;
+    }
+
+    // 2. الصوت الافتراضي الأنثوي الهادئ
+    const cleaned = cleanSig
+      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, ' ')
+      .replace(/[_]{2,}/g, ' ... ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (cleaned && 'speechSynthesis' in window) {
+      if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+      const u = new SpeechSynthesisUtterance(cleaned);
+      const targetLang = lang || detectLangSafe(cleaned);
+      u.lang = targetLang;
+      const v = pickFemaleVoiceSafe(targetLang);
+      if (v) u.voice = v;
+      u.pitch = 1.12;
+      u.rate = 0.92;
+      window.speechSynthesis.speak(u);
+    }
   }
 
-  // توجيه كل دوال النطق في التطبيق عبر الطابور الآمن
+  // توجيه كل دوال النطق عبر القطع التنازلي الناعم
   if (window.LumiQuestionVoice) {
-    window.LumiQuestionVoice.speak = (t) => enqueueSpeech(t);
+    window.LumiQuestionVoice.speak = (t) => playInterruptible(t);
   }
   if (window.LumiAudio) {
     LumiAudio.speakTerm = (t, lang) => {
       const map = { ar: 'ar-EG', fr: 'fr-FR', en: 'en-US' };
-      enqueueSpeech(t, map[lang]);
+      playInterruptible(t, map[lang]);
     };
     LumiAudio.speak = async function(voiceId, textEg = '', textFr = '') {
-      if (textEg) enqueueSpeech(textEg, 'ar-EG');
-      if (textFr) enqueueSpeech(textFr, 'fr-FR');
+      if (textEg) return playInterruptible(textEg, 'ar-EG');
+      if (textFr) return playInterruptible(textFr, 'fr-FR');
     };
   }
 })();
